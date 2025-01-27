@@ -64,8 +64,7 @@ The library aims to prove the following meta-theorems for disjunctions:
                                   as arguments. Returns `true` if every index of `lo` is included in `ln`.
 */
 
-require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Impred Leo-III-lambdapi-lib.futureStdlib;
-
+require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Impred;
 
 // eval 
 
