@@ -4,7 +4,7 @@ require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool 
 ////////////////////////////// ACCESSORY RULES ////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 
-////////// Transforming Literals to Their Equational and Non-Equational Forms π 
+////////// Transforming Literals to Their Equational and Non-Equational Forms
 
 opaque symbol posPropPosEq_eq x: (π (x = (x = ⊤)))≔
 begin
@@ -19,12 +19,6 @@ begin
         {assume h2;
         refine ind_eq h2 (λ z, z) ⊤ᵢ}
 end;
-
-opaque symbol posPropPosEq_term : Π x: τ o, π x → π (x = ⊤)
-≔ λ x h1, propExt x ⊤ (λ _, ⊤ᵢ) (λ _, h1);
-
-opaque symbol posEqPosProp_term : Π x: Prop, π (x = ⊤) → π x
-≔ λ x h2, ind_eq h2 (λ z, z) ⊤ᵢ;
 
 opaque symbol posPropNegEq_eq x: (π (x = (¬ ((¬ x) = ⊤))))≔
 begin
@@ -63,7 +57,6 @@ begin
         refine H1 h1}
 end;
 
-
 opaque symbol negPropNegEq_eq x: (π ((¬ x) = (¬ (x = ⊤))))≔
 begin
     assume x;
@@ -101,7 +94,6 @@ begin
             refine ⊥ₑ (h1 H1)}}
 end;
 
-
 opaque symbol negEqNegProp_eq x: (π ((¬ (x = ⊤)) = (¬ x)))≔
 begin
     assume x;
@@ -117,6 +109,21 @@ begin
                 {assume h3;
                 refine h2}};
         refine h1 H1}
+end;
+
+opaque symbol posEqPosProp_eq x: (π ((x = ⊤) = x))≔
+begin
+    assume x;
+    symmetry;
+    refine propExt x (x = ⊤) _ _
+        {assume h1;
+        refine propExt x ⊤ _ _ 
+            {assume h2;
+            refine ⊤ᵢ}
+            {assume h2;
+            refine h1}}
+        {assume h2;
+        refine (ind_eq h2 (λ z, z)) ⊤ᵢ}
 end;
 
 opaque symbol posEqNegProp_eq x: (π (((¬ x) = ⊤) = (¬ x)))≔
@@ -137,20 +144,8 @@ begin
         refine H1 h1}
 end;
 
-opaque symbol posEqPosProp_eq x: (π ((x = ⊤) = x))≔
-begin
-    assume x;
-    symmetry;
-    refine propExt x (x = ⊤) _ _
-        {assume h1;
-        refine propExt x ⊤ _ _ 
-            {assume h2;
-            refine ⊤ᵢ}
-            {assume h2;
-            refine h1}}
-        {assume h2;
-        refine (ind_eq h2 (λ z, z)) ⊤ᵢ}
-end;
+
+////////// Transformations involving ⊤ and ⊥
 
 opaque symbol topPosProp_eq x: (π (( ⊤ = x) = x))≔ 
 begin
@@ -186,10 +181,76 @@ begin
             refine h1 h2}}
 end;
 
+opaque symbol negPropEqBot_eq x: (π ((¬ x) = (x = ⊥)))≔ 
+begin
+    assume x;
+    type propExt (¬ x) (x = ⊥) _ _;
+    refine propExt (¬ x) (x = ⊥) _ _
+        {assume h1;
+        refine propExt x ⊥ _ _
+        {assume h2;
+            refine h1 h2}
+        {assume h2;
+            refine ⊥ₑ h2}}
+        {assume h1;
+        refine ind_eq h1 (λ y, ¬ y) (λ h : π ⊥, h)}
+end;
+
+opaque symbol negPropNegEqBot_eq x: π (¬ x = ¬ (¬ x = ⊥))≔ 
+begin
+    assume x;
+    refine propExt (¬ x) (¬ (¬ x = ⊥)) _ _
+        {assume h1 h2;
+        have H1: π (⊥ = ¬ x)
+            {symmetry;
+            refine h2};
+        refine ind_eq H1 (λ y, y) h1}
+            {assume h1 h2;
+            refine h1 _;
+            refine propExt (¬ x) ⊥ _ _
+                {assume h3;
+                refine h3 h2}
+                {assume h3;
+                refine ⊥ₑ h3}}
+end;
+
+opaque symbol propNegEqBot_eq x: π (x = ¬ (x = ⊥))≔ 
+begin
+    assume x;
+    refine propExt x (¬ (x = ⊥)) _ _
+    {assume h1 h2;
+    refine ind_eq (h2) (λ z, z ⇒ ⊥) (λ y : π (⊥), y) h1}
+    {assume h1;
+    refine dne (x) _;
+    assume h2;
+    have H1: π (x = ⊥)
+        {refine propExt x ⊥ _ _
+        {assume h3;
+        refine h2 h3}
+        {assume h3;
+        refine ⊥ₑ h3}};
+        refine h1 H1}
+end;
+
+opaque symbol PropEqBot_eq x: π (x = (¬ x = ⊥))≔ 
+begin
+    assume x;
+    refine propExt x (¬ x = ⊥) _ _
+        {assume h1;
+        refine propExt (¬ x) ⊥ _ _
+            {assume h2;
+            refine h2 h1}
+            {assume h2;
+            refine ⊥ₑ h2}}
+        {assume h1;
+        refine dne x (ind_eq h1 (λ y, ¬ y) (λ h : π ⊥, h))}
+end;
+
+
 
 ////////// Changing Order within Equality Literals
 
-opaque symbol eqSym_eq [T] (x y : τ T) : π((x = y) = (y = x))≔
+opaque symbol eqSym [T] (x y : τ T) : π((x = y) = (y = x))≔
 begin
     assume T x y;
     have H1: π(x = y) → π(y = x)
@@ -211,3 +272,40 @@ opaque symbol eqSym_n : Π T: Set, Π x: τ T, Π y: τ T, π (¬ (x = y)) → �
 (λ T x y h1, (λ h2, h1 ((λ h3, (ind_eq h3) (λ z, x = z) (eq_refl [T] x)) h2)));
 
 
+////////// Implicit transformations marked as calculus rule applications by Leo-III
+
+symbol polaritySwitchEqLit a b : π ((a = b) = ((¬ a) = (¬ b)))≔
+begin
+    assume a b;
+    refine propExt (a = b) (¬ a = ¬ b) _ _ 
+        {assume h1;
+        have H1: π (b = a)
+                {symmetry;
+                refine h1};
+        refine propExt (¬ a) (¬ b) _ _
+            {assume h2;
+            refine ind_eq H1 (λ x, ¬ x) h2}
+            {assume h2;
+            refine ind_eq h1 (λ x, ¬ x) h2}}
+        {assume h1;
+        have H1: π (¬ b = ¬ a)
+                {symmetry;
+                refine h1};
+        refine propExt a b _ _
+            {assume h2;
+            have H2: π (¬ (¬ a))
+                {assume h3;
+                refine h3 h2};
+            refine (dne b) (ind_eq H1 (λ x, (¬ x)) H2)}
+            {assume h2;
+            have H2: π (¬ (¬ b))
+                {assume h3;
+                refine h3 h2};
+            refine (dne a) (ind_eq h1 (λ x, (¬ x)) H2)}}
+end;
+
+symbol lifteq_t_n [a] (x y : τ a) : π ((x ≠ y) = (¬ (x = y)))≔
+begin
+    assume a x y;
+	reflexivity
+end;

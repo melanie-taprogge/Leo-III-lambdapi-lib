@@ -5,7 +5,7 @@ symbol funExt [T S] (f g : (τ (T ⤳ S))) : π(∀(λ x, (f x) = (g x))) → π
 
 symbol em x : π((x ∨ ¬ x));
 
-opaque symbol npp x : π(¬ ¬ x) → π x ≔
+opaque symbol dne x : π(¬ ¬ x) → π x ≔
 begin
     assume x h1;
     refine ∨ₑ (em x) _ _

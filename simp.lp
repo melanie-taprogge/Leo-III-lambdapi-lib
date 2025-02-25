@@ -177,6 +177,6 @@ begin
         {assume h1 h2;
         refine h2 h1}
         {assume h1;
-        refine npp x h1}
+        refine dne x h1}
 end;
 

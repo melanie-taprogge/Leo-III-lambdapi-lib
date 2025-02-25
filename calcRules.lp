@@ -47,7 +47,7 @@ begin
                     {assume h4;
                     refine ⊥ₑ (h3 h4)};
                 refine h1 (propExt x y H3 H4)};
-            refine npp (y) H2};
+            refine dne (y) H2};
         refine ∨ᵢ₂ H1};
 end;
 
