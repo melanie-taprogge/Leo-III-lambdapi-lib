@@ -68,13 +68,13 @@ require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool 
 
 // eval 
 
-symbol eval : τ nat → 𝕃 o → τ o;
-rule eval $n $list ↪ nth ⊥ $list $n;
+symbol eval_nth : τ nat → 𝕃 o → τ o;
+rule eval_nth $n $list ↪ nth ⊥ $list $n;
 
-assert l0 l1 l2 ⊢ eval 1 (l0 ⸬ l1 ⸬ l2 ⸬ l1 ⸬ □) ≡ l1;
+assert l0 l1 l2 ⊢ eval_nth 1 (l0 ⸬ l1 ⸬ l2 ⸬ l1 ⸬ □) ≡ l1;
 
 opaque symbol eval_ext (l: 𝕃 o) (l0 : τ o) (n: τ nat) : 
-    π (eval n l) → π (eval (n +1) (l0 ⸬ l)) ≔
+    π (eval_nth n l) → π (eval_nth (n +1) (l0 ⸬ l)) ≔
 begin
     assume l l0 n;
     simplify;
@@ -136,7 +136,7 @@ begin
 end;
 
 opaque symbol lit_imp_disj (lit_list: 𝕃 o) (pos_list: 𝕃 nat) : 
-    π (∃(λ x, (eval x lit_list) ∧ (∈ eqn x pos_list))) → π (disj (eval_list pos_list lit_list)) ≔
+    π (∃(λ x, (eval_nth x lit_list) ∧ (∈ eqn x pos_list))) → π (disj (eval_list pos_list lit_list)) ≔
 begin
     assume lit_list;
     induction
@@ -175,7 +175,7 @@ begin
 end;
 
 opaque symbol disj_imp_lit (l: 𝕃 o) : 
-    π (disj l) → π (∃(λ (x : τ nat), (eval x l) ∧ (∈ eqn x (indexes l)))) ≔
+    π (disj l) → π (∃(λ (x : τ nat), (eval_nth x l) ∧ (∈ eqn x (indexes l)))) ≔
 begin
     induction
         {assume h1;
@@ -183,24 +183,24 @@ begin
         {assume l0 l h1 h2;
         have H0: π (l0 ∨ disj l)
             {refine disj_correct l0 l h2};
-        have H1: π l0 → π (`∃ x, (eval x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l))))
+        have H1: π l0 → π (`∃ x, (eval_nth x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l))))
             {assume h3;
-            have H1_0 : π (eval 0 (l0 ⸬ l))
+            have H1_0 : π (eval_nth 0 (l0 ⸬ l))
                 {simplify;
                 refine h3};
-            have H1_1 : π ((λ x, eval x (l0 ⸬ l) ∧ (∈ eqn x (indexes (l0 ⸬ l)))) 0)
+            have H1_1 : π ((λ x, eval_nth x (l0 ⸬ l) ∧ (∈ eqn x (indexes (l0 ⸬ l)))) 0)
                 {simplify;
                 refine ∧ᵢ H1_0 (0∈indexes⸬ l0 l)};
-            refine ∃ᵢ [nat] [(λ x, eval x (l0 ⸬ l) ∧ (∈ eqn x (indexes (l0 ⸬ l))))] 0 H1_1};
-        have H2: π (disj l) → π (`∃ x, (eval x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l))))
+            refine ∃ᵢ [nat] [(λ x, eval_nth x (l0 ⸬ l) ∧ (∈ eqn x (indexes (l0 ⸬ l))))] 0 H1_1};
+        have H2: π (disj l) → π (`∃ x, (eval_nth x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l))))
             {assume h3;
-            have H2_0 : Π x0 , π ((λ x, eval x l ∧ (∈ eqn x (indexes l))) x0) → π (`∃ x, (eval x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l))))
+            have H2_0 : Π x0 , π ((λ x, eval_nth x l ∧ (∈ eqn x (indexes l))) x0) → π (`∃ x, (eval_nth x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l))))
                 {assume n h4;
-                have H2_0_0 : π ((λ x , (eval x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l)))) (n +1))
+                have H2_0_0 : π ((λ x , (eval_nth x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l)))) (n +1))
                     {refine ∧ᵢ (eval_ext l l0 n ((∧ₑ₁ h4))) (+1∈indexes⸬ o n l l0 ((∧ₑ₂ h4)))};
-                refine ∃ᵢ [nat] [λ x , (eval x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l)))] (n +1) H2_0_0
+                refine ∃ᵢ [nat] [λ x , (eval_nth x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l)))] (n +1) H2_0_0
                 };
-            refine ∃ₑ (h1 h3) [`∃ x, (eval x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l)))] H2_0};
+            refine ∃ₑ (h1 h3) [`∃ x, (eval_nth x (l0 ⸬ l)) ∧ (∈ eqn x (indexes (l0 ⸬ l)))] H2_0};
         refine ∨ₑ H0 H1 H2};
 end;
 
@@ -230,7 +230,7 @@ begin
 end;
 
 opaque symbol disj_imp_lit_pos (lit_list: 𝕃 o) (pos_list: 𝕃 nat): 
-    π (disj (eval_list pos_list lit_list)) → π (∃(λ (x : τ nat), (eval x lit_list) ∧ (∈ eqn x pos_list))) ≔
+    π (disj (eval_list pos_list lit_list)) → π (∃(λ (x : τ nat), (eval_nth x lit_list) ∧ (∈ eqn x pos_list))) ≔
 begin
     assume lit_list;
     induction
@@ -240,21 +240,21 @@ begin
         assume h1 h2;
         have H0: π ((nth ⊥ lit_list l0) ∨ disj (eval_list pos_list lit_list))
             {refine disj_correct (nth ⊥ lit_list l0) (eval_list pos_list lit_list) h2};
-        have H1: π (nth ⊥ lit_list l0) → π (`∃ x, eval x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list)))
+        have H1: π (nth ⊥ lit_list l0) → π (`∃ x, eval_nth x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list)))
             {assume h3;
-            have H1_0 : π (eval l0 lit_list)
+            have H1_0 : π (eval_nth l0 lit_list)
                 {refine h3};
-            have H1_1 : π ((λ x, eval x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list))) l0)
+            have H1_1 : π ((λ x, eval_nth x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list))) l0)
                 {refine ∧ᵢ H1_0 (x_in_x⸬ pos_list l0 eqn (λ x, (eqn_complete x x (eq_refl x))))};
-        refine ∃ᵢ [nat] [λ x, eval x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list))] l0 H1_1};
-        have H2: π (disj (eval_list pos_list lit_list)) → π (`∃ x, eval x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list)))
+        refine ∃ᵢ [nat] [λ x, eval_nth x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list))] l0 H1_1};
+        have H2: π (disj (eval_list pos_list lit_list)) → π (`∃ x, eval_nth x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list)))
             {assume h3;
-            have H2_0: (Π x: τ nat, π ((λ x1, eval x1 lit_list ∧ (∈ eqn x1 pos_list)) x) → π (`∃ x1, eval x1 lit_list ∧ (∈ eqn x1 (l0 ⸬ pos_list))))
+            have H2_0: (Π x: τ nat, π ((λ x1, eval_nth x1 lit_list ∧ (∈ eqn x1 pos_list)) x) → π (`∃ x1, eval_nth x1 lit_list ∧ (∈ eqn x1 (l0 ⸬ pos_list))))
                 {assume n h4;
-                have H2_0_0 : π ((λ x, eval x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list))) n)
+                have H2_0_0 : π ((λ x, eval_nth x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list))) n)
                     {refine ∧ᵢ (∧ₑ₁ h4) (in⸬ eqn n l0 pos_list (∧ₑ₂ h4))};
-                refine ∃ᵢ [nat]  [λ x , eval x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list))] n H2_0_0};
-            refine ∃ₑ (h1 h3) [`∃ x, eval x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list))] H2_0};    
+                refine ∃ᵢ [nat]  [λ x , eval_nth x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list))] n H2_0_0};
+            refine ∃ₑ (h1 h3) [`∃ x, eval_nth x lit_list ∧ (∈ eqn x (l0 ⸬ pos_list))] H2_0};    
         refine ∨ₑ H0 H1 H2}
 end;
 
@@ -316,11 +316,11 @@ opaque symbol perm_theorem (σ : 𝕃 nat) (c: 𝕃 o) :
 begin
     assume σ c h1 h2;
 
-    have H1: (Π x: τ nat, π ((λ x1, (eval x1 c) ∧ (∈ eqn x1 (indexes c))) x) → π (∃(λ y ,(eval y c) ∧ (∈ eqn y σ))))
+    have H1: (Π x: τ nat, π ((λ x1, (eval_nth x1 c) ∧ (∈ eqn x1 (indexes c))) x) → π (∃(λ y ,(eval_nth y c) ∧ (∈ eqn y σ))))
         {assume x0 h3;
-        refine (∃ᵢ [nat] [λ y ,(eval y c) ∧ (∈ eqn y σ)] x0) (∧ᵢ (∧ₑ₁ h3) (preserves_contents_el x0 σ c h1 (∧ₑ₂ h3)))};
+        refine (∃ᵢ [nat] [λ y ,(eval_nth y c) ∧ (∈ eqn y σ)] x0) (∧ᵢ (∧ₑ₁ h3) (preserves_contents_el x0 σ c h1 (∧ₑ₂ h3)))};
     
-    have H2: π (∃(λ y ,(eval y c) ∧ (∈ eqn y σ)))
+    have H2: π (∃(λ y ,(eval_nth y c) ∧ (∈ eqn y σ)))
         {refine ∃ₑ (disj_imp_lit c h2) H1};
 
     refine  lit_imp_disj c σ H2;
@@ -338,7 +338,7 @@ begin
     refine lit_imp_disj c output_list _;
     refine ∃ₑ (disj_imp_lit_pos c id_list h2) _;
     assume n h3;
-    refine (∃ᵢ [nat] [λ x, eval x c ∧ (∈ eqn x output_list)] n) (∧ᵢ (∧ₑ₁ h3) (bincludes_el n output_list id_list h1 (∧ₑ₂ h3)))
+    refine (∃ᵢ [nat] [λ x, eval_nth x c ∧ (∈ eqn x output_list)] n) (∧ᵢ (∧ₑ₁ h3) (bincludes_el n output_list id_list h1 (∧ₑ₂ h3)))
 end;
 
 assert l0 l1 l2 ⊢ double_lit_del_theorem (0 ⸬ 1 ⸬ 2 ⸬ 1 ⸬ □) (0 ⸬ 1 ⸬ 2 ⸬ □) (l0 ⸬ l1 ⸬ l2 ⸬ l1 ⸬ □) ⊤ᵢ : π (l0 ∨ l1 ∨ l2 ∨ l1) → π (l0 ∨ l1 ∨ l2);

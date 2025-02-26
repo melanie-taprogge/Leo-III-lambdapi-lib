@@ -6,7 +6,7 @@ require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool 
 
 ////////// Transforming Literals to Their Equational and Non-Equational Forms
 
-opaque symbol posPropPosEq_eq x: (π (x = (x = ⊤)))≔
+opaque symbol posPropPosEq x: (π (x = (x = ⊤)))≔
 begin
     assume x;
     refine propExt x (x = ⊤) _ _
@@ -20,7 +20,7 @@ begin
         refine ind_eq h2 (λ z, z) ⊤ᵢ}
 end;
 
-opaque symbol posPropNegEq_eq x: (π (x = (¬ ((¬ x) = ⊤))))≔
+opaque symbol posPropNegEq x: (π (x = (¬ ((¬ x) = ⊤))))≔
 begin
     assume x;
     refine propExt x (¬ ((¬ x) = ⊤)) _ _
@@ -40,7 +40,7 @@ begin
             refine ⊥ₑ (h1 H1)}}
 end;
 
-opaque symbol negPropPosEq_eq x: (π ((¬ x) = ((¬ x) = ⊤)))≔
+opaque symbol negPropPosEq x: (π ((¬ x) = ((¬ x) = ⊤)))≔
 begin
     assume x;
     refine propExt (¬ x) ((¬ x) = ⊤) _ _
@@ -57,7 +57,7 @@ begin
         refine H1 h1}
 end;
 
-opaque symbol negPropNegEq_eq x: (π ((¬ x) = (¬ (x = ⊤))))≔
+opaque symbol negPropNegEq x: (π ((¬ x) = (¬ (x = ⊤))))≔
 begin
     assume x;
     refine propExt (¬ x) (¬ (x = ⊤)) _ _
@@ -73,7 +73,7 @@ begin
         refine h1 H1}
 end;
 
-opaque symbol negEqPosProp_eq x: (π ((¬ ((¬ x) = ⊤)) = x))≔
+opaque symbol negEqPosProp x: (π ((¬ ((¬ x) = ⊤)) = x))≔
 begin
     assume x;
     symmetry;
@@ -94,7 +94,7 @@ begin
             refine ⊥ₑ (h1 H1)}}
 end;
 
-opaque symbol negEqNegProp_eq x: (π ((¬ (x = ⊤)) = (¬ x)))≔
+opaque symbol negEqNegProp x: (π ((¬ (x = ⊤)) = (¬ x)))≔
 begin
     assume x;
     symmetry;
@@ -111,7 +111,7 @@ begin
         refine h1 H1}
 end;
 
-opaque symbol posEqPosProp_eq x: (π ((x = ⊤) = x))≔
+opaque symbol posEqPosProp x: (π ((x = ⊤) = x))≔
 begin
     assume x;
     symmetry;
@@ -126,7 +126,7 @@ begin
         refine (ind_eq h2 (λ z, z)) ⊤ᵢ}
 end;
 
-opaque symbol posEqNegProp_eq x: (π (((¬ x) = ⊤) = (¬ x)))≔
+opaque symbol posEqNegProp x: (π (((¬ x) = ⊤) = (¬ x)))≔
 begin
     assume x;
     symmetry;
@@ -147,7 +147,7 @@ end;
 
 ////////// Transformations involving ⊤ and ⊥
 
-opaque symbol topPosProp_eq x: (π (( ⊤ = x) = x))≔ 
+opaque symbol topPosProp x: (π (( ⊤ = x) = x))≔ 
 begin
     assume x;
     refine propExt (⊤ = x) x _ _
@@ -164,7 +164,7 @@ begin
             refine ⊤ᵢ}}
 end;
 
-opaque symbol botNegProp_eq x: (π ((⊥ = x) = (¬ x)))≔ 
+opaque symbol botNegProp x: (π ((⊥ = x) = (¬ x)))≔ 
 begin
     assume x;
     refine propExt (⊥ = x) (¬ x) _ _
@@ -181,7 +181,7 @@ begin
             refine h1 h2}}
 end;
 
-opaque symbol negPropEqBot_eq x: (π ((¬ x) = (x = ⊥)))≔ 
+opaque symbol negPropEqBot x: (π ((¬ x) = (x = ⊥)))≔ 
 begin
     assume x;
     type propExt (¬ x) (x = ⊥) _ _;
@@ -196,7 +196,7 @@ begin
         refine ind_eq h1 (λ y, ¬ y) (λ h : π ⊥, h)}
 end;
 
-opaque symbol negPropNegEqBot_eq x: π (¬ x = ¬ (¬ x = ⊥))≔ 
+opaque symbol negPropNegEqBot x: π (¬ x = ¬ (¬ x = ⊥))≔ 
 begin
     assume x;
     refine propExt (¬ x) (¬ (¬ x = ⊥)) _ _
@@ -214,7 +214,7 @@ begin
                 refine ⊥ₑ h3}}
 end;
 
-opaque symbol propNegEqBot_eq x: π (x = ¬ (x = ⊥))≔ 
+opaque symbol propNegEqBot x: π (x = ¬ (x = ⊥))≔ 
 begin
     assume x;
     refine propExt x (¬ (x = ⊥)) _ _
@@ -232,7 +232,7 @@ begin
         refine h1 H1}
 end;
 
-opaque symbol PropEqBot_eq x: π (x = (¬ x = ⊥))≔ 
+opaque symbol PropEqBot x: π (x = (¬ x = ⊥))≔ 
 begin
     assume x;
     refine propExt x (¬ x = ⊥) _ _

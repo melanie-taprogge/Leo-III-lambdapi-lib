@@ -4,7 +4,7 @@ require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool 
 ////////////////////////////// SIMPLIFICATION RULES ///////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////// 
 
-opaque symbol simp1_eq x: (π (x = (x ∨ x)))≔
+opaque symbol simp1 x: (π (x = (x ∨ x)))≔
 begin
     assume x;
     refine propExt x (x ∨ x) _ _ 
@@ -18,7 +18,7 @@ begin
             refine h2}}
 end;
 
-opaque symbol simp2_eq x: (π (x = (x ∧ x)))≔
+opaque symbol simp2 x: (π (x = (x ∧ x)))≔
 begin
     assume x;
     refine propExt x (x ∧ x) _ _ 
@@ -28,7 +28,7 @@ begin
         refine ∧ₑ₁ h1}
 end;
 
-opaque symbol simp3_eq x: (π (⊤ = ((¬ x) ∨ x)))≔
+opaque symbol simp3 x: (π (⊤ = ((¬ x) ∨ x)))≔
 begin
     assume x;
     refine propExt ⊤ ((¬ x) ∨ x) _ _ 
@@ -44,7 +44,7 @@ begin
         refine ⊤ᵢ}
 end;
 
-opaque symbol simp4_eq x: (π (⊥ = ((¬ x) ∧ x)))≔
+opaque symbol simp4 x: (π (⊥ = ((¬ x) ∧ x)))≔
 begin
     assume x;
     refine propExt ⊥ ((¬ x) ∧ x) _ _ 
@@ -54,7 +54,7 @@ begin
         refine (∧ₑ₁ h1) (∧ₑ₂ h1)}
 end;
 
-opaque symbol simp5_eq x: (π (⊤ = (x ∨ ⊤)))≔
+opaque symbol simp5 x: (π (⊤ = (x ∨ ⊤)))≔
 begin
     assume x;
     refine propExt ⊤ (x ∨ ⊤) _ _ 
@@ -64,7 +64,7 @@ begin
         refine ⊤ᵢ}
 end;
 
-opaque symbol simp6_eq x: (π (x = (x ∧ ⊤)))≔
+opaque symbol simp6 x: (π (x = (x ∧ ⊤)))≔
 begin
     assume x;
     refine propExt x (x ∧ ⊤) _ _ 
@@ -74,7 +74,7 @@ begin
         refine ∧ₑ₁ h1}
 end;
 
-opaque symbol simp7_eq x: (π (x = (x ∨ ⊥)))≔
+opaque symbol simp7 x: (π (x = (x ∨ ⊥)))≔
 begin
     assume x;
     refine propExt x (x ∨ ⊥) _ _ 
@@ -88,7 +88,7 @@ begin
             refine ⊥ₑ h2}}
 end;
 
-opaque symbol simp8_eq x: (π (⊥ = (x ∧ ⊥)))≔
+opaque symbol simp8 x: (π (⊥ = (x ∧ ⊥)))≔
 begin
     assume x;
     refine propExt ⊥ (x ∧ ⊥) _ _ 
@@ -99,7 +99,7 @@ begin
         refine ∧ₑ₂ h1}
 end;
 
-opaque symbol simp9_eq (T : Set) (x : τ T): (π ( ⊤ = (x = x)))≔
+opaque symbol simp9 (T : Set) (x : τ T): (π ( ⊤ = (x = x)))≔
 begin
     assume T x;
     refine propExt ⊤ (x = x) _ _ 
@@ -109,7 +109,7 @@ begin
         refine ⊤ᵢ}
 end;
 
-opaque symbol simp10_eq (T : Set) (x : τ T): (π (⊥ = (¬ (x = x))))≔
+opaque symbol simp10 (T : Set) (x : τ T): (π (⊥ = (¬ (x = x))))≔
 begin
     assume T x;
     refine propExt ⊥ (¬ (x = x)) _ _ 
@@ -122,7 +122,7 @@ begin
         refine H1 (eq_refl [T] x)}
 end;
 
-opaque symbol simp11_eq x: (π (x = (x = ⊤)))≔
+opaque symbol simp11 x: (π (x = (x = ⊤)))≔
 begin
     assume x;
     refine propExt x (x = ⊤) _ _ 
@@ -136,7 +136,7 @@ begin
         refine (ind_eq h1 (λ z: Prop, z)) ⊤ᵢ}
 end;
 
-opaque symbol simp12_eq x: (π ((¬ x) = (¬(x = ⊤))))≔
+opaque symbol simp12 x: (π ((¬ x) = (¬(x = ⊤))))≔
 begin
     assume x;
     refine propExt  (¬ x) (¬(x = ⊤)) _ _ 
@@ -152,7 +152,7 @@ begin
                 refine h2}}
 end;
 
-opaque symbol simp15_eq: (π (⊤ = (¬ ⊥)))≔
+opaque symbol simp15 : (π (⊤ = (¬ ⊥)))≔
 begin
     refine propExt ⊤ (¬ ⊥) _ _ 
         {assume h1 h2;
@@ -161,7 +161,7 @@ begin
         refine ⊤ᵢ}
 end;
 
-opaque symbol simp16_eq: (π (⊥ = (¬ ⊤)))≔
+opaque symbol simp16 : (π (⊥ = (¬ ⊤)))≔
 begin
     refine propExt ⊥ (¬ ⊤) _ _ 
         {assume h1;
@@ -170,7 +170,7 @@ begin
         refine h1 ⊤ᵢ}
 end;
 
-opaque symbol simp17_eq x: (π (x = (¬ ¬ x)))≔
+opaque symbol simp17 x: (π (x = (¬ ¬ x)))≔
 begin
     assume x;
     refine propExt x (¬ ¬ x) _ _ 
