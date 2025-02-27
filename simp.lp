@@ -1,4 +1,4 @@
-require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.HOL Stdlib.Impred Leo-III-lambdapi-lib.extt Leo-III-lambdapi-lib.accessoryRules;
+require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Classic Stdlib.Bool Stdlib.List Stdlib.HOL Stdlib.Impred Leo-III-lambdapi-lib.extt Leo-III-lambdapi-lib.accessoryRules;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// SIMPLIFICATION RULES ///////////////////////////////////
@@ -177,6 +177,6 @@ begin
         {assume h1 h2;
         refine h2 h1}
         {assume h1;
-        refine dne x h1}
+        refine ¬¬ₑ x h1}
 end;
 

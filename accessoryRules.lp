@@ -1,4 +1,4 @@
-require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.HOL Stdlib.Impred Leo-III-lambdapi-lib.extt;
+require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Classic Stdlib.Bool Stdlib.List Stdlib.HOL Stdlib.Impred Leo-III-lambdapi-lib.extt;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// ACCESSORY RULES ////////////////////////////////////////
@@ -221,7 +221,7 @@ begin
     {assume h1 h2;
     refine ind_eq (h2) (λ z, z ⇒ ⊥) (λ y : π (⊥), y) h1}
     {assume h1;
-    refine dne (x) _;
+    refine ¬¬ₑ (x) _;
     assume h2;
     have H1: π (x = ⊥)
         {refine propExt x ⊥ _ _
@@ -243,7 +243,7 @@ begin
             {assume h2;
             refine ⊥ₑ h2}}
         {assume h1;
-        refine dne x (ind_eq h1 (λ y, ¬ y) (λ h : π ⊥, h))}
+        refine ¬¬ₑ x (ind_eq h1 (λ y, ¬ y) (λ h : π ⊥, h))}
 end;
 
 
@@ -296,12 +296,12 @@ begin
             have H2: π (¬ (¬ a))
                 {assume h3;
                 refine h3 h2};
-            refine (dne b) (ind_eq H1 (λ x, (¬ x)) H2)}
+            refine (¬¬ₑ b) (ind_eq H1 (λ x, (¬ x)) H2)}
             {assume h2;
             have H2: π (¬ (¬ b))
                 {assume h3;
                 refine h3 h2};
-            refine (dne a) (ind_eq h1 (λ x, (¬ x)) H2)}}
+            refine (¬¬ₑ a) (ind_eq h1 (λ x, (¬ x)) H2)}}
 end;
 
 symbol lifteq_t_n [a] (x y : τ a) : π ((x ≠ y) = (¬ (x = y)))≔
