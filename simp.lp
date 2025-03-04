@@ -4,7 +4,9 @@ require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Class
 ////////////////////////////// SIMPLIFICATION RULES ///////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////// 
 
-opaque symbol simp1 x: (π (x = (x ∨ x)))≔
+// Simplifications of Idempotence and Contradiction for ∧ and ∨
+
+opaque symbol ∨_idem x: π (x = (x ∨ x))≔
 begin
     assume x;
     refine propExt x (x ∨ x) _ _ 
@@ -18,7 +20,7 @@ begin
             refine h2}}
 end;
 
-opaque symbol simp2 x: (π (x = (x ∧ x)))≔
+opaque symbol ∧_idem x: π (x = (x ∧ x))≔
 begin
     assume x;
     refine propExt x (x ∧ x) _ _ 
@@ -28,23 +30,7 @@ begin
         refine ∧ₑ₁ h1}
 end;
 
-opaque symbol simp3 x: (π (⊤ = ((¬ x) ∨ x)))≔
-begin
-    assume x;
-    refine propExt ⊤ ((¬ x) ∨ x) _ _ 
-        {assume h2;
-        have em_sym: π(¬ x ∨ x)
-        {refine ∨ₑ (em x) _ _
-            {assume h3;
-            refine ∨ᵢ₂ h3}
-            {assume h3;
-            refine ∨ᵢ₁ h3}};
-        refine em_sym}
-        {assume h1;
-        refine ⊤ᵢ}
-end;
-
-opaque symbol simp4 x: (π (⊥ = ((¬ x) ∧ x)))≔
+opaque symbol ∧_contra x: π (⊥ = ((¬ x) ∧ x))≔
 begin
     assume x;
     refine propExt ⊥ ((¬ x) ∧ x) _ _ 
@@ -54,7 +40,10 @@ begin
         refine (∧ₑ₁ h1) (∧ₑ₂ h1)}
 end;
 
-opaque symbol simp5 x: (π (⊤ = (x ∨ ⊤)))≔
+
+// Simplifications of Conjunction and Disjunction with ⊤ and ⊥
+
+opaque symbol ∨⊤ x: π (⊤ = (x ∨ ⊤))≔
 begin
     assume x;
     refine propExt ⊤ (x ∨ ⊤) _ _ 
@@ -64,7 +53,7 @@ begin
         refine ⊤ᵢ}
 end;
 
-opaque symbol simp6 x: (π (x = (x ∧ ⊤)))≔
+opaque symbol ∧⊤ x: π (x = (x ∧ ⊤))≔
 begin
     assume x;
     refine propExt x (x ∧ ⊤) _ _ 
@@ -74,7 +63,7 @@ begin
         refine ∧ₑ₁ h1}
 end;
 
-opaque symbol simp7 x: (π (x = (x ∨ ⊥)))≔
+opaque symbol ∨⊥ x: π (x = (x ∨ ⊥))≔
 begin
     assume x;
     refine propExt x (x ∨ ⊥) _ _ 
@@ -88,7 +77,7 @@ begin
             refine ⊥ₑ h2}}
 end;
 
-opaque symbol simp8 x: (π (⊥ = (x ∧ ⊥)))≔
+opaque symbol ∧⊥ x: π (⊥ = (x ∧ ⊥))≔
 begin
     assume x;
     refine propExt ⊥ (x ∧ ⊥) _ _ 
@@ -99,7 +88,31 @@ begin
         refine ∧ₑ₂ h1}
 end;
 
-opaque symbol simp9 (T : Set) (x : τ T): (π ( ⊤ = (x = x)))≔
+
+// Simplifications of negated ⊤ and ⊥
+
+opaque symbol ¬⊥ : π (⊤ = ¬ ⊥)≔
+begin
+    refine propExt ⊤ (¬ ⊥) _ _ 
+        {assume h1 h2;
+        refine h2}
+        {assume h1;
+        refine ⊤ᵢ}
+end;
+
+opaque symbol ¬⊤ : π (⊥ = ¬ ⊤)≔
+begin
+    refine propExt ⊥ (¬ ⊤) _ _ 
+        {assume h1;
+        refine ⊥ₑ h1}
+        {assume h1;
+        refine h1 ⊤ᵢ}
+end;
+
+
+// Simplifications of equalities
+
+opaque symbol eqxx (T : Set) (x : τ T): π ( ⊤ = (x = x))≔
 begin
     assume T x;
     refine propExt ⊤ (x = x) _ _ 
@@ -109,7 +122,7 @@ begin
         refine ⊤ᵢ}
 end;
 
-opaque symbol simp10 (T : Set) (x : τ T): (π (⊥ = (¬ (x = x))))≔
+opaque symbol ¬eqxx (T : Set) (x : τ T): π (⊥ = ¬ (x = x))≔
 begin
     assume T x;
     refine propExt ⊥ (¬ (x = x)) _ _ 
@@ -122,7 +135,7 @@ begin
         refine H1 (eq_refl [T] x)}
 end;
 
-opaque symbol simp11 x: (π (x = (x = ⊤)))≔
+opaque symbol eq⊤ x: π (x = (x = ⊤))≔
 begin
     assume x;
     refine propExt x (x = ⊤) _ _ 
@@ -136,7 +149,7 @@ begin
         refine (ind_eq h1 (λ z: Prop, z)) ⊤ᵢ}
 end;
 
-opaque symbol simp12 x: (π ((¬ x) = (¬(x = ⊤))))≔
+opaque symbol ¬eq⊤ x: π (¬ x = ¬(x = ⊤))≔
 begin
     assume x;
     refine propExt  (¬ x) (¬(x = ⊤)) _ _ 
@@ -152,25 +165,26 @@ begin
                 refine h2}}
 end;
 
-opaque symbol simp15 : (π (⊤ = (¬ ⊥)))≔
+
+// Simplifications reflecting Classical Principles
+
+opaque symbol em_eq x: π (⊤ = (¬ x ∨ x))≔
 begin
-    refine propExt ⊤ (¬ ⊥) _ _ 
-        {assume h1 h2;
-        refine h2}
+    assume x;
+    refine propExt ⊤ (¬ x ∨ x) _ _ 
+        {assume h2;
+        have em_sym: π(¬ x ∨ x)
+        {refine ∨ₑ (em x) _ _
+            {assume h3;
+            refine ∨ᵢ₂ h3}
+            {assume h3;
+            refine ∨ᵢ₁ h3}};
+        refine em_sym}
         {assume h1;
         refine ⊤ᵢ}
 end;
 
-opaque symbol simp16 : (π (⊥ = (¬ ⊤)))≔
-begin
-    refine propExt ⊥ (¬ ⊤) _ _ 
-        {assume h1;
-        refine ⊥ₑ h1}
-        {assume h1;
-        refine h1 ⊤ᵢ}
-end;
-
-opaque symbol simp17 x: (π (x = (¬ ¬ x)))≔
+opaque symbol ¬¬ₑ_eq x: π (x = ¬ ¬ x)≔
 begin
     assume x;
     refine propExt x (¬ ¬ x) _ _ 
