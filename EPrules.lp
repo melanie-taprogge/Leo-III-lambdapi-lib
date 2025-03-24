@@ -1,5 +1,5 @@
-require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Classic Stdlib.Bool Stdlib.List Stdlib.HOL Stdlib.Impred Leo-III-lambdapi-lib.extt Leo-III-lambdapi-lib.accessoryRules;
-  
+require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Classic Stdlib.HOL Stdlib.Impred Stdlib.PropExt;
+
 ///////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// CALCULUS RULES /////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -136,4 +136,3 @@ begin
                 {assume h3;
                 refine ∨ᵢ₁ h3}
 end;
-

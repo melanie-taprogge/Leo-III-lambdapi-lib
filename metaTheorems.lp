@@ -52,11 +52,12 @@ The library aims to prove the following meta-theorems for disjunctions:
 ---
 
 ** Defined Operations:
-                   `literal n l`: Returns the element of the list `l` at index `n`.
-                 `literals ln l`: Takes as arguments a list `ln` of natural numbers and a list `l` and 
-                                  returns a list of  the elements of `l` ordered according to the indices in `ln`.
+                   `literal n l`: Returns the element of the list `l` of terms of type `o` at index `n`.
+                 `literals ln l`: Takes as arguments a list `ln` of natural numbers and a list `l` of terms of 
+                                  type `o` and returns a list of  the elements of `l` ordered according to the 
+                                  indices in `ln`.
                         `disj l`: Returns the disjunction of all literals in the list `l`.
-       `⊆ [a] eqb l1 l2`: For two lists `l1` and `l2` of type `a` and a boolean equality relation `eqb` 
+               `⊆ [a] eqb l1 l2`: For two lists `l1` and `l2` of type `a` and a boolean equality relation `eqb` 
                                   for elements of type `a`, this operation returns `true` if `l2` includes all 
                                   elements of `l1`, and `false` otherwise.
                       `l1 ⊆ₙ l2`: Special case of ⊆ for natural numbers and equality relation `eqn`
@@ -65,115 +66,13 @@ The library aims to prove the following meta-theorems for disjunctions:
 */
 
 require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Impred;
-
-////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////// prelim ////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-// Preliminary theorems regarding standard library notations:
-
-symbol istrue=true [x] : π (istrue x) → π (x = true)≔
-begin
-    assume x h;
-    refine ∨ₑ (case_𝔹 x) _ _
-        {assume h1;
-        refine h1}
-        {assume h1;
-        have H1: π (istrue false)
-            {rewrite eq_sym h1;
-            refine h};
-        refine ⊥ₑ H1};
-end;
-
-opaque symbol mem_tail [a] (beq: τ a → τ a → 𝔹) (n m: τ a) (l: 𝕃 a) : 
-    π (∈ beq n l) → π (∈ beq n (m ⸬ l)) ≔
-begin
-    assume a beq n m;
-    induction
-        {assume h1;
-        refine ⊥ₑ h1}
-        {assume n0 l;
-        assume h1 h2;
-        have H0: π (beq n n0) →  π (beq n m or (beq n n0 or ∈ beq n l))
-            {assume h3;
-            refine orᵢ₂ (beq n m) [beq n n0 or ∈ beq n l] (orᵢ₁ [beq n n0] (∈ beq n l) h3)};
-        have H1: π (∈ beq n l) →  π (beq n m or (beq n n0 or ∈ beq n l))
-            {assume h3;
-            refine orᵢ₂ (beq n m) [beq n n0 or ∈ beq n l] (orᵢ₂ (beq n n0) [∈ beq n l] h3)};
-        refine orₑ [beq n n0] [∈ beq n l] (beq n m or (beq n n0 or ∈ beq n l)) h2 H0 H1}
-end;
-
-symbol nths [a : Set] : τ a → 𝕃 a → 𝕃 nat → 𝕃 a;
-rule nths $b $l $n ↪ map (nth $b $l) $n;
-
-symbol mapS_iota (m n : τ nat) : 
-    π (map (+1) (iota n m) = iota (n +1) m)≔
-begin
-    induction
-        {induction
-            {refine eq_refl □}
-            {assume n h;
-            refine h}}
-        {induction
-            {assume h n;
-            refine eq_refl (n +1 ⸬ □)}
-            {simplify;
-            assume n0 h0 h1 m;
-            rewrite h1 (m +1);
-            refine eq_refl (m +1 ⸬ m +1 +1 ⸬ iota (m +1 +1 +1) n0)}}
-end;
-
-symbol indexes_cons [a : Set] (x : τ a) (l : 𝕃 a) : 
-    π (indexes (x ⸬ l) = 0 ⸬ (map (+1) (indexes l)))≔
-    begin
-        assume a x;
-        induction
-            {refine eq_refl (0 ⸬ □)}
-            {simplify;
-            assume y l h;
-            rewrite mapS_iota;
-            refine eq_refl (0 ⸬ 1 ⸬ iota 2 (size l))}
-end;
-
-symbol nths_shift_cons [a : Set] (x b : τ a) (l : 𝕃 a) (n : 𝕃 nat) : 
-    π ((nths b (x ⸬ l) (map (+1) n)) = (nths b l n))≔
-begin
-    assume a x b l;
-    induction
-        {refine eq_refl □}
-        {assume n ll h1;
-        have H1: π (nths b (x ⸬ l) (map (+1) (n ⸬ ll)) =
-                    nth b (x ⸬ l) (n +1) ⸬ nths b (x ⸬ l) (map (+1) ll))
-            {refine eq_refl (nth b l n ⸬ map (nth b (x ⸬ l)) (map (+1) ll))};
-        rewrite H1;
-        rewrite h1;
-        refine eq_refl (nths b l (n ⸬ ll))}
-end;
-
-opaque symbol nths_indexes_id [a : Set] (b : τ a) (l : 𝕃 a) : 
-    π (nths b l (indexes l) = l)≔
-begin
-    assume a b;
-    induction
-    {refine eq_refl □}
-    {assume x l h1;
-     rewrite indexes_cons x l;
-     have H1: π (nths b (x ⸬ l) (0 ⸬ map (+1) (indexes l)) =
-                 x ⸬ nths b (x ⸬ l) (map (+1) (indexes l)))
-       {refine eq_refl (x ⸬ map (nth b (x ⸬ l)) (map (+1) (indexes l)))};
-     rewrite H1;
-     rewrite nths_shift_cons x b l (indexes l);
-     rewrite h1;
-     refine eq_refl (x ⸬ l)}
-end;
   
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////// lemmas ////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-// define some notations corresponding to standard library symbols
+// Define some notations corresponding to standard library symbols
 
 symbol ∈ₙ ≔ ∈ eqn;
 notation ∈ₙ infix right 40;
@@ -191,6 +90,7 @@ end;
 
 symbol literals ≔ nths ⊥;
 assert l0 l1 l2 ⊢ literals (l0 ⸬ l1 ⸬ l2  ⸬ l1 ⸬ □) (1 ⸬ 2 ⸬ 0 ⸬ 3 ⸬ □) ≡ l1 ⸬ (l2  ⸬ (l0 ⸬ (l1 ⸬ □)));
+
 
 // disj
 
@@ -235,7 +135,7 @@ begin
         refine h2}
 end;
 
-opaque symbol lit_imp_disj_pos (c: 𝕃 o) (ks: 𝕃 nat) : 
+opaque symbol lit_imp_disj (c: 𝕃 o) (ks: 𝕃 nat) : 
     π (`∃ x, literal c x ∧ x ∈ₙ ks) → π (disj (literals c ks)) ≔
 begin
     assume c;
@@ -316,7 +216,7 @@ notation ⊆ₙ infix right 30.000000;
 
 assert ⊢ (0 ⸬ 1 ⸬ □) ⊆ₙ (1 ⸬ 2 ⸬ 0 ⸬ 3 ⸬ □) ≡ true;
 
-opaque symbol ⊆_el (n: τ nat) (σ: 𝕃 nat) (ln: 𝕃 nat): 
+opaque symbol ⊆ₙ_el (n: τ nat) (σ: 𝕃 nat) (ln: 𝕃 nat): 
     π (ln ⊆ₙ σ) → π (n ∈ₙ ln) → π (n ∈ₙ σ) ≔
 begin
     assume n σ;
@@ -345,12 +245,12 @@ rule preserves_contents  $f $l ↪ (indexes $l) ⊆ₙ $f;
 assert l0 l1 l2 ⊢ 
     preserves_contents (1 ⸬ 2 ⸬ 0 ⸬ 3 ⸬ □) (l0 ⸬ l1 ⸬ l2 ⸬ l1 ⸬ □) ≡ true;
 
-opaque symbol preserves_contents_el (n: τ nat) (σ : 𝕃 nat) (l: 𝕃 o) : 
+opaque symbol preserves_contents_correct (n: τ nat) (σ : 𝕃 nat) (l: 𝕃 o) : 
     π (preserves_contents σ l) →  π (n ∈ₙ (indexes l)) → π (n ∈ₙ σ) ≔
 begin
     assume n σ l;
     assume h1 h2;
-    refine ⊆_el n σ (indexes l) h1 h2;   
+    refine ⊆ₙ_el n σ (indexes l) h1 h2;   
 end;
 
 
@@ -369,14 +269,14 @@ begin
         π ((λ x1, literal c x1 ∧ x1 ∈ₙ indexes c) x)
         → π (`∃ y, literal c y ∧ y ∈ₙ σ)
         {assume x0 h3;
-        refine ∃ᵢ x0 (∧ᵢ (∧ₑ₁ h3) (preserves_contents_el x0 σ c h1 (∧ₑ₂ h3)))};
+        refine ∃ᵢ x0 (∧ᵢ (∧ₑ₁ h3) (preserves_contents_correct x0 σ c h1 (∧ₑ₂ h3)))};
     
     have H2: π (`∃ y, literal c y ∧ y ∈ₙ σ)
         {have H3: π (disj (nths ⊥ c (indexes c)))
             {rewrite nths_indexes_id ⊥ c;
             refine h2};
         refine ∃ₑ (disj_imp_lit c (indexes c) H3) H1};
-    refine lit_imp_disj_pos c σ H2
+    refine lit_imp_disj c σ H2
 end;
       
 
@@ -390,15 +290,16 @@ opaque symbol delete (id_list : 𝕃 nat) (output_list : 𝕃 nat) (c: 𝕃 o) :
     π (id_list ⊆ₙ output_list) → π(disj (literals c id_list)) → π(disj (literals c output_list)) ≔
 begin
     assume id_list output_list c h1 h2;
-    refine lit_imp_disj_pos c output_list _;
+    refine lit_imp_disj c output_list _;
     refine ∃ₑ (disj_imp_lit c id_list h2) _;
     assume n h3;
     refine ∃ᵢ n (∧ᵢ (∧ₑ₁ h3)
-        (⊆_el n output_list id_list h1 (∧ₑ₂ h3)))
+        (⊆ₙ_el n output_list id_list h1 (∧ₑ₂ h3)))
 end;
       
 
-assert l0 l1 l2 ⊢ delete (0 ⸬ 1 ⸬ 2 ⸬ 1 ⸬ □) (0 ⸬ 1 ⸬ 2 ⸬ □) (l0 ⸬ l1 ⸬ l2 ⸬ l1 ⸬ □) ⊤ᵢ : π (l0 ∨ l1 ∨ l2 ∨ l1) → π (l0 ∨ l1 ∨ l2);
+assert l0 l1 l2 ⊢ delete (0 ⸬ 1 ⸬ 2 ⸬ 1 ⸬ □) (0 ⸬ 1 ⸬ 2 ⸬ □) (l0 ⸬ l1 ⸬ l2 ⸬ l1 ⸬ □) ⊤ᵢ : 
+    π (l0 ∨ l1 ∨ l2 ∨ l1) → π (l0 ∨ l1 ∨ l2);
 
 
 // transformation theorem 
