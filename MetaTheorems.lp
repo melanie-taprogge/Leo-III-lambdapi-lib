@@ -2,9 +2,22 @@
 
 -------------------
 
-The library aims to prove the following meta-theorems for disjunctions:
+The library aims to prove the following meta-theorems for conjunctions and disjunctions:
 
-** Permutation Theorem:
+** Select:
+   This theorem is used when we need to isolate a single clause out of a conjunction of clauses. 
+   For instance, suppose we have a conjunction of clauses  `π (c0 ∧ c1 ∧ c2)` and we want to 
+   select the clause at position `id`.
+
+   The theorem is instantiated with:
+   - A natural number `id`, the position of the desired clause in the conjunction.
+   - A list of clauses `cnf : 𝕃 o` representing the conjunction.
+
+   The theorem checks whether `id` is indeed in the indexes of `cnf`.  If it is, then from 
+   `π (conj cnf)` it extracts the single clause `π (literal cnf id)`. In other words, it maps 
+   the entire conjunction of clauses to the one at position `id`.
+
+** Permutate:
    The theorem is instantiated with:
    - A list of natural numbers representing a disjunction.
    - A list of terms of type `o` representing a clause.
@@ -12,7 +25,7 @@ The library aims to prove the following meta-theorems for disjunctions:
    The theorem verifies that the permuted clause still contains all literals of the original clause. 
    If so, it maps the disjunction of the original clause to the disjunction after the permutation.
 
-** Double Literal Deletion Theorem:
+** Delete:
    The theorem is instantiated with three lists:
    - A list of natural numbers representing the indices of literals in the original list. 
      For literals occurring multiple times, the index of the first occurrence is used for all of the
@@ -28,7 +41,7 @@ The library aims to prove the following meta-theorems for disjunctions:
    in the derived clause. If so, it maps the disjunction of the original literals to the disjunction after 
    the desired double literal deletion. This approach allows multiple identical literals to be deleted at once.
 
-** Transformation Theorem:
+** Transform:
    This theorem is useful when a rule is applied to only one literal of a clause. 
    For example, consider the clause `π (l0 ∨ l1 ∨ l2 ∨ l3)` and an inference rule `π l2 → π l2'`. 
    The transformation theorem can be instantiated with:
@@ -57,6 +70,7 @@ The library aims to prove the following meta-theorems for disjunctions:
                                   type `o` and returns a list of  the elements of `l` ordered according to the 
                                   indices in `ln`.
                         `disj l`: Returns the disjunction of all literals in the list `l`.
+                        `conj l`: Returns the conjunction of all terms of type `o` in the list `l`.
                `⊆ [a] eqb l1 l2`: For two lists `l1` and `l2` of type `a` and a boolean equality relation `eqb` 
                                   for elements of type `a`, this operation returns `true` if `l2` includes all 
                                   elements of `l1`, and `false` otherwise.
@@ -89,6 +103,38 @@ end;
 
 symbol literals ≔ nths ⊥;
 assert l0 l1 l2 ⊢ literals (l0 ⸬ l1 ⸬ l2  ⸬ l1 ⸬ □) (1 ⸬ 2 ⸬ 0 ⸬ 3 ⸬ □) ≡ l1 ⸬ (l2  ⸬ (l0 ⸬ (l1 ⸬ □)));
+
+
+// lemmas on ∈ₙ
+
+symbol indexes_shift (l: 𝕃 nat) (n : τ nat):
+    π (istrue ((n +1) ∈ₙ (map (+1) l)) ⇒ istrue (n ∈ₙ l))≔
+begin
+    induction
+        {assume n x; refine x}
+        {assume n0;
+        induction
+            {assume h0 n h1; refine h1}
+            {assume n1 l h0 h1 n2 h2;
+            refine orₑ [eqn n2 n0] [eqn n2 n1 or ∈ eqn (n2 +1) (map (+1) l)] (eqn n2 n0 or (eqn n2 n1 or ∈ eqn n2 l)) h2 _ _
+                {assume h3;
+                refine orᵢ₁ (eqn n2 n1 or ∈ eqn n2 l) h3}
+                {assume h3;
+                refine orᵢ₂ (eqn n2 n0) (h1 n2 h3)}}}
+end;
+
+symbol indexes_decrement (id : τ nat) (l0: τ o) (l: 𝕃 o): 
+     π ((id +1) ∈ₙ (indexes (l0 ⸬ l))) → π (id ∈ₙ (indexes l))≔
+begin
+    assume id l0 l;
+    assume h0; 
+    have H1 : π ((istrue (∈ eqn (id +1) (iota 1 (size l)))) ⇒ (istrue (∈ eqn id (iota 0 (size l)))))
+        {have H2: π (iota 1 (size l) = map (+1) (iota 0 (size l)))
+            {refine (eq_sym (mapS_iota (size l) 0))};
+        rewrite H2;
+        refine indexes_shift (iota 0 (size l)) id};
+    refine H1 h0
+end;
 
 
 // disj
@@ -203,6 +249,49 @@ begin
 end;   
 
 
+// conj
+
+symbol conj : 𝕃 o → τ o;
+rule conj ($l1 ⸬ ($c ⸬ $l)) ↪ ($l1 ∧ conj ($c ⸬ $l))
+with conj ($l1 ⸬ □) ↪ $l1 
+with conj □ ↪ ⊤;
+
+assert l0 l1 l2 ⊢ π (conj (l0 ⸬ l1 ⸬ l2  ⸬ l1 ⸬ □)) ≡ π (l0 ∧ (l1 ∧ (l2  ∧ l1)));
+
+opaque symbol conj_head (c0 : τ o) (c : 𝕃 o) : 
+     π (conj (c0 ⸬ c)) → π (c0) ≔
+begin
+    assume c0;
+    induction
+        {assume h1;
+        refine h1}   
+        {assume x0 c1 h1 h2;
+        refine ∧ₑ₁ h2}
+end; 
+
+opaque symbol conj_tail (c0 : τ o) (c : 𝕃 o) : 
+     π (conj (c0 ⸬ c)) → π (conj c) ≔
+begin
+    assume c0;
+    induction
+        {assume h1;
+        refine ⊤ᵢ}   
+        {assume x0 c1 h1 h2; 
+        refine ∧ₑ₂ h2}
+end; 
+
+opaque symbol conj_correct (c0 : τ o) (c : 𝕃 o) : 
+    π (conj (c0 ⸬ c)) → π (c0 ∧ conj c) ≔
+begin
+    assume c0;
+    induction
+        {assume h1;
+        refine ∧ᵢ h1 ⊤ᵢ}
+        {assume x1 c1 h1 h2;
+        refine h2}
+end;
+
+
 // ⊆
 
 symbol ⊆  [a] : (τ a → τ a → 𝔹) → 𝕃 a → 𝕃 a → 𝔹;
@@ -255,6 +344,29 @@ end;
 ///////////////////////////////// meta-therems /////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+// clause selection theorem
+
+opaque symbol select (id : τ nat) (cnf: 𝕃 o) : 
+    π (id ∈ₙ (indexes cnf)) → π (conj cnf) → π (literal cnf id) ≔
+begin
+    induction 
+        {induction
+            {assume h0 h1; refine h0}
+            {assume x cnf h0 h1 h2; 
+            refine conj_head x cnf h2}}
+        {assume id h0;
+        induction
+            {assume b; refine ⊥ₑ b}
+            {assume x cnf h1 h2 h3;
+            have ConjImpCl : π (conj cnf ⇒ literal cnf id)
+                {refine h0 cnf (indexes_decrement id x cnf h2)};
+            refine literal_ext cnf x id (ConjImpCl (conj_tail x cnf h3))}}
+end;
+
+assert c0 c1 c2 c2' ⊢ select 2 (c0 ⸬ c1 ⸬ c2 ⸬ c1 ⸬ □): 
+    (π ⊤) →  π (c0 ∧ c1 ∧ c2 ∧ c1) → π (c2);
+
+
 // permutation theorem 
 
 opaque symbol permute (σ : 𝕃 nat) (c: 𝕃 o) : 
@@ -275,10 +387,10 @@ begin
         refine ∃ₑ (disj_imp_lit c (indexes c) H3) H1};
     refine lit_imp_disj c σ H2
 end;
-      
 
 assert l0 l1 l2 ⊢ permute (1 ⸬ 2 ⸬ 0 ⸬ 3 ⸬ □) (l0 ⸬ l1 ⸬ l2 ⸬ l0 ⸬ □) ⊤ᵢ : 
     π (l0 ∨ l1 ∨ l2 ∨ l0) → π (l1 ∨ l2 ∨ l0 ∨ l0);
+
 
 
 // double literal deletion theorem
@@ -292,8 +404,7 @@ begin
     assume n h3;
     refine ∃ᵢ n (∧ᵢ (∧ₑ₁ h3)
         (⊆ₙ_el n output_list id_list h1 (∧ₑ₂ h3)))
-end;
-      
+end;    
 
 assert l0 l1 l2 ⊢ delete (0 ⸬ 1 ⸬ 2 ⸬ 1 ⸬ □) (0 ⸬ 1 ⸬ 2 ⸬ □) (l0 ⸬ l1 ⸬ l2 ⸬ l1 ⸬ □) ⊤ᵢ : 
     π (l0 ∨ l1 ∨ l2 ∨ l1) → π (l0 ∨ l1 ∨ l2);
