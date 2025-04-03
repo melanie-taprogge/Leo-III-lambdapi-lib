@@ -83,8 +83,7 @@ assert l0 l1 l2 ⊢ literal (l0 ⸬ l1 ⸬ l2 ⸬ l1 ⸬ □) 1 ≡ l1;
 opaque symbol literal_ext (l: 𝕃 o) (l0 : τ o) (n: τ nat) : 
     π (literal l n) → π (literal (l0 ⸬ l) (n +1)) ≔
 begin
-    assume l l0 n;
-    assume h1;
+    assume l l0 n h1;
     refine h1
 end;
 
@@ -108,8 +107,7 @@ begin
     induction
         {assume h1;
         refine h1}   
-        {assume x0 l1 h1; 
-        assume h2; 
+        {assume x0 l1 h1 h2; 
         refine ∨ᵢ₁ h2}
 end; 
 
@@ -248,8 +246,7 @@ assert l0 l1 l2 ⊢
 opaque symbol preserves_contents_correct (n: τ nat) (σ : 𝕃 nat) (l: 𝕃 o) : 
     π (preserves_contents σ l) →  π (n ∈ₙ (indexes l)) → π (n ∈ₙ σ) ≔
 begin
-    assume n σ l;
-    assume h1 h2;
+    assume n σ l h1 h2;
     refine ⊆ₙ_el n σ (indexes l) h1 h2;   
 end;
 
@@ -313,28 +310,28 @@ begin
         refine ⊥ₑ h2}
     {assume x clause h1;
         induction
-        {assume h2 h3;
-        have H0: π (x ∨ disj clause)
-        {refine disj_correct x clause h3};
-        have H1: π x → π (disj (l ⸬ clause))
-        {assume h4;
-            refine disj_head l clause (h2 h4)};
-        have H2: π (disj clause) → π (disj (l ⸬ clause))
-        {assume h4;
-            refine disj_tail l clause h4};
-        refine ∨ₑ H0 H1 H2}
-        {assume n h2 h3 h4;
-        have H00: π (x ∨ disj clause)
-        {refine disj_correct x clause h4};
-        have H10: π x → π (disj (x ⸬ set_nth ⊥ clause n l))
-        {assume h5;
-            refine disj_head x (set_nth ⊥ clause n l) h5};
-        have H20: π (disj clause) → π (disj (x ⸬ set_nth ⊥ clause n l))
-        {assume h5;
-            have H2_0: π (disj (set_nth ⊥ clause n l))
-            {refine h1 n h3 h5};
-            refine disj_tail x (set_nth ⊥ clause n l) H2_0};
-        refine ∨ₑ H00 H10 H20}}
+            {assume h2 h3;
+            have H0: π (x ∨ disj clause)
+                {refine disj_correct x clause h3};
+            have H1: π x → π (disj (l ⸬ clause))
+                {assume h4;
+                refine disj_head l clause (h2 h4)};
+            have H2: π (disj clause) → π (disj (l ⸬ clause))
+                {assume h4;
+                refine disj_tail l clause h4};
+            refine ∨ₑ H0 H1 H2}
+            {assume n h2 h3 h4;
+            have H00: π (x ∨ disj clause)
+                {refine disj_correct x clause h4};
+            have H10: π x → π (disj (x ⸬ set_nth ⊥ clause n l))
+                {assume h5;
+                refine disj_head x (set_nth ⊥ clause n l) h5};
+            have H20: π (disj clause) → π (disj (x ⸬ set_nth ⊥ clause n l))
+                {assume h5;
+                have H2_0: π (disj (set_nth ⊥ clause n l))
+                    {refine h1 n h3 h5};
+                refine disj_tail x (set_nth ⊥ clause n l) H2_0};
+            refine ∨ₑ H00 H10 H20}}
 end;
 
 assert l0 l1 l2 l2' ⊢ transform [l2'] (l0 ⸬ l1 ⸬ l2 ⸬ l1 ⸬ □) 2 : 
