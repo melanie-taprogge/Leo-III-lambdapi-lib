@@ -10,6 +10,9 @@ require open Stdlib.Set Stdlib.Prop Stdlib.PropExt Stdlib.List;
  
  symbol #rewrite : Π [a], π a → τ tactic;
  builtin "rewrite" ≔ #rewrite;
+
+ symbol #rewrite_left [a] : π a → Tactic;
+ builtin "rewrite left" ≔ #rewrite_left;
  
  constant symbol String : TYPE;
  builtin "String" ≔ String;
@@ -59,6 +62,9 @@ require open Stdlib.Set Stdlib.Prop Stdlib.PropExt Stdlib.List;
  
  symbol #simplify : Tactic;
  builtin "simplify" ≔ #simplify;
+
+ symbol #simplify_beta : Tactic;
+ builtin "simplify rule off" ≔ #simplify_beta;
  
  symbol #solve : Tactic;
  builtin "solve" ≔ #solve;
@@ -71,15 +77,16 @@ require open Stdlib.Set Stdlib.Prop Stdlib.PropExt Stdlib.List;
  
  symbol #why3 : Tactic;
  builtin "why3" ≔ #why3; 
+
  
  // necessary in order to define the tactics
  protected symbol set0 : Set;
  rule τ set0 ↪ Set;
  
  
- /******************************************************************************
-  *  Definition of combined Simplification tactic        
-  ******************************************************************************/
+/******************************************************************************
+*  Definition of Leo-III simplification tactic        
+******************************************************************************/
  
  symbol applyAny : 𝕃 tactic → Tactic;
  rule applyAny ($t0 ⸬ $tl) ↪ $t0 #orelse (applyAny $tl)
@@ -94,3 +101,14 @@ require open Stdlib.Set Stdlib.Prop Stdlib.PropExt Stdlib.List;
      (#rewrite ¬⊤=) ⸬ (#rewrite ¬=_idem) ⸬ (#rewrite ∀_const) ⸬ (#rewrite ∃_const) ⸬ (#rewrite polarity_switch) ⸬ (#refine ⊤ᵢ) ⸬ □);
  
  symbol applyAllSimplifications ≔ #repeat (applyAny listOfAllSimpRules);
+
+
+/******************************************************************************
+*  Definition of Leo-III clausification tactic        
+******************************************************************************/
+
+symbol normAsso ≔ #repeat ((#rewrite ∧_assoc) #orelse (#rewrite ∨_assoc));
+
+symbol allCNFids_list ≔ ((#rewrite deMorgan_∧) ⸬ (#rewrite deMorgan_∨) ⸬ (#rewrite ⇒=∨) ⸬ (#rewrite ¬⇒=∧¬) ⸬ (#and (#rewrite ∧∨_dist_l) normAsso) ⸬ (#and (#rewrite ∧∨_dist_r) normAsso) ⸬ (#rewrite ¬¬ₑ_eq) ⸬ □);
+
+symbol allCNFids_app ≔ #and (#and (#repeat (applyAny allCNFids_list)) normAsso) #reflexivity;
