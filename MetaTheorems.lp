@@ -79,7 +79,7 @@ The library aims to prove the following meta-theorems for conjunctions and disju
                                   as arguments. Returns `true` if every index of `lo` is included in `ln`.
 */
 
-require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Impred;
+require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Impred Stdlib.PropExt;
   
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -169,14 +169,16 @@ begin
 end;
 
 opaque symbol disj_correct (l0 : τ o) (l : 𝕃 o) : 
-    π (disj (l0 ⸬ l)) → π (l0 ∨ disj l) ≔
+    π ((disj (l0 ⸬ l)) = (l0 ∨ disj l)) ≔
 begin
     assume l0;
     induction
-        {assume h1;
-        refine ∨ᵢ₁ h1}
-        {assume x1 l1 h1 h2;
-        refine h2}
+        {simplify; 
+        rewrite ∨⊥; 
+        reflexivity}
+        {simplify;
+        assume x l h0; 
+        reflexivity}
 end;
 
 opaque symbol lit_imp_disj (c: 𝕃 o) (ks: 𝕃 nat) : 
@@ -225,7 +227,7 @@ begin
         refine ⊥ₑ h1}
     {assume l0 ks h1 h2;
         have H0: π (literal c l0 ∨ disj (literals c ks))
-        {refine disj_correct (literal c l0) (literals c ks) h2};
+        {refine =⇒ (disj_correct (literal c l0) (literals c ks)) h2};
         have H1: π (literal c l0) → π (`∃ x, literal c x ∧ x ∈ₙ (l0 ⸬ ks))
         {assume h3;
         have H1_0: π (literal c l0)
@@ -423,7 +425,7 @@ begin
         induction
             {assume h2 h3;
             have H0: π (x ∨ disj clause)
-                {refine disj_correct x clause h3};
+                {refine =⇒ (disj_correct x clause) h3};
             have H1: π x → π (disj (l ⸬ clause))
                 {assume h4;
                 refine disj_head l clause (h2 h4)};
@@ -433,7 +435,7 @@ begin
             refine ∨ₑ H0 H1 H2}
             {assume n h2 h3 h4;
             have H00: π (x ∨ disj clause)
-                {refine disj_correct x clause h4};
+                {refine =⇒ (disj_correct x clause) h4};
             have H10: π x → π (disj (x ⸬ set_nth ⊥ clause n l))
                 {assume h5;
                 refine disj_head x (set_nth ⊥ clause n l) h5};

@@ -18,6 +18,7 @@ The clausification process is split up into four seperate processes:
 
 ** Associativity: (WIP)
    ...
+   
 */
 
 require open Stdlib.FunExt;
