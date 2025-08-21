@@ -14,7 +14,7 @@ symbol multi_impl : 𝕃 o → τ o → Prop;
 rule multi_impl ($p0 ⸬ $p) $p1 ↪ $p0 ⇒ (multi_impl $p $p1)
 with multi_impl □ $p0 ↪ $p0;
 
-symbol multi_impl_correct (p : 𝕃 o) (p0 p1: Prop): π ((multi_impl (p0 ⸬ p) p1) = (p0 ⇒ multi_impl p p1)) ≔
+opaque symbol multi_impl_correct (p : 𝕃 o) (p0 p1: Prop): π ((multi_impl (p0 ⸬ p) p1) = (p0 ⇒ multi_impl p p1)) ≔
 begin
     induction
         {simplify; assume x0 x1; reflexivity}
@@ -27,7 +27,7 @@ end;
 /////////////////////////////////// ∨ //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-symbol ∨ᵢₙ₂ (c0 : 𝕃 o) (c1 : 𝕃 o) : π (disj c1) → π (disj (c0 ++ c1))≔
+opaque symbol ∨ᵢₙ₂ (c0 : 𝕃 o) (c1 : 𝕃 o) : π (disj c1) → π (disj (c0 ++ c1))≔
 begin
     induction
         {assume x h;
@@ -37,7 +37,7 @@ begin
         refine ∨ᵢ₂ (h0 l1 h1)}
 end;
 
-symbol ∨ᵢₙ₁ (c0 : 𝕃 o) (c1 : 𝕃 o) : π (disj c0) → π (disj (c0 ++ c1))≔
+opaque symbol ∨ᵢₙ₁ (c0 : 𝕃 o) (c1 : 𝕃 o) : π (disj c0) → π (disj (c0 ++ c1))≔
 begin
     induction
         {assume x h; refine ⊥ₑ h}
@@ -58,7 +58,7 @@ rule rem ($l0 ⸬ $l) ($n +1) ↪ ($l0 ⸬ (rem $l $n))
 with rem  ($l0 ⸬ $l) 0 ↪ $l
 with rem □ _ ↪ □;
 
-symbol ∨ₑₙ (n : ℕ) (c : 𝕃 o) (r : Prop) : π(disj c) → π((literal c n ⇒ r)) → π((disj(rem c n)) ⇒ r) → π r ≔
+opaque symbol ∨ₑₙ (n : ℕ) (c : 𝕃 o) [r : Prop] : π(disj c) → π((literal c n ⇒ r)) → π((disj(rem c n)) ⇒ r) → π r ≔
 begin
     induction
         {induction
