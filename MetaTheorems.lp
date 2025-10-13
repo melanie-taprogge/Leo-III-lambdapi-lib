@@ -1,4 +1,4 @@
-/* Library on Meta-Theorems for Disjunctions
+/* Library on Meta-Theorems for Disjunctions and conjunctions
 
 -------------------
 
@@ -79,7 +79,7 @@ The library aims to prove the following meta-theorems for conjunctions and disju
                                   as arguments. Returns `true` if every index of `lo` is included in `ln`.
 */
 
-require open Stdlib.Set Stdlib.Prop Stdlib.FOL Stdlib.Eq Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Impred Stdlib.PropExt;
+require open Stdlib.List Stdlib.PropExt;
   
 
 ////////////////////////////////////////////////////////////////////////////////

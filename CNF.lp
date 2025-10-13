@@ -186,8 +186,8 @@ begin
         rewrite left h1; rewrite ⇒=∨; reflexivity}
         {assume a f h0; simplify; rewrite eta_exp f; simplify; 
         refine propExt (`∀ x, nnf_denote ((λ y, f y) x)) (nnf_denote (nnf (nnf_Forall (λ y, f y)))) _ _ 
-            {assume h1 z; simplify; rewrite left (h0 z) ; refine h1 z}
-            {assume h1 z; simplify; rewrite (h0 z) ; refine h1 z}}
+            {assume h1 z; rewrite left (h0 z) ; refine h1 z}
+            {assume h1 z; rewrite (h0 z) ; refine h1 z}}
         {assume a f h0; rewrite eta_exp f; simplify;
         refine propExt (`∃ x, nnf_denote (f x)) (`∃ x, nnf_denote (nnf (f x))) _ _ 
             {assume h1; refine ∃ₑ h1 _; assume y h2;
