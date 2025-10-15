@@ -1,4 +1,4 @@
-require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.PropExt Stdlib.Epsilon;
+require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.PropExt Leo-III-lambdapi-lib.Epsilon;
 
 opaque symbol ¬∀=∃¬ (t : Set) (p : τ (t ⤳ o)) : 
     π (¬(∀ p) = (`∃ (x : τ t), ¬ (p x)))≔
