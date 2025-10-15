@@ -1,5 +1,4 @@
-require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.FunExt Stdlib.PropExt Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Epsilon;
-
+require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.FunExt Stdlib.PropExt Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Epsilon Leo-III-lambdapi-lib.CNFeq;
 
 
 /******************************************************************************
@@ -87,36 +86,7 @@ require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.
  protected symbol set0 : Set;
  rule τ set0 ↪ Set;
  
- 
-/******************************************************************************
-*  Definition of additional rules for simplification
-******************************************************************************/
-
-opaque symbol ¬x=_idem : Π x, π (((¬ x) = x) = ⊥)≔
-begin
-    assume x;
-    refine propExt ((¬ x )= x) ⊥ _ _
-        {assume h; 
-        refine ∨ₑ [x] [¬ x] [⊥] (em x) _ _
-            {assume h0;
-            refine =⇒ (eq_sym h) h0 h0}
-            {assume h0;
-            refine h0 (=⇒ h h0)}}
-        {assume h;
-        refine ⊥ₑ h}
-end;
-
-opaque symbol =¬x_idem : Π x, π ((x = (¬ x)) = ⊥)≔
-begin
-    assume x;
-    rewrite =_sym x (¬ x);
-    refine ¬x=_idem x
-end;
-
-/******************************************************************************
-*  Definition of Leo-III simplification tactic        
-******************************************************************************/
- 
+  
 symbol applyAny : 𝕃 tactic → Tactic;
  rule applyAny ($t0 ⸬ ($t1 ⸬ $tl)) ↪ $t0 #orelse (applyAny ($t1 ⸬ $tl))
  with applyAny ($t0 ⸬ □) ↪ $t0;
@@ -129,7 +99,8 @@ symbol applyAny : 𝕃 tactic → Tactic;
      (#rewrite "" "" =⊥) ⸬ (#rewrite "" "" ⊥=) ⸬ (#rewrite "" "" =_idem) ⸬ (#rewrite "" "" ¬=⊥) ⸬ (#rewrite "" "" ¬⊥=) ⸬ (#rewrite "" "" ¬=⊤) ⸬ 
      (#rewrite "" "" ¬⊤=) ⸬ (#rewrite "" "" ¬=_idem) ⸬ (#rewrite "" "" ∀_const) ⸬ (#rewrite "" "" ∃_const) ⸬ (#rewrite "" "" ¬x=_idem) ⸬ (#rewrite "" "" =¬x_idem) ⸬ 
      (#rewrite "" "" polarity_switch) ⸬ (#refine "⊤ᵢ") ⸬ □);
-      
+     // the rules and ... are added as Leo omits trivially false literals, we account for this using this rule
+ 
  symbol applyAllSimplifications ≔ #repeat (applyAny listOfAllSimpRules);
 
 
@@ -164,6 +135,7 @@ end;
 
 
 //  Skolemisazion
+
 
 opaque symbol εᵢ_rev :  Π [a: Set], Π p: (τ a → Prop),  π (p (ε p)) → π (∃ p)≔
 begin
@@ -295,7 +267,7 @@ symbol tryVars: 𝕃 string → Tactic;
 rule tryVars ($v0 ⸬ ($v1 ⸬ $vs)) ↪ (#assume $v0) #orelse (tryVars ($v1 ⸬ $vs))
 with tryVars ($v0 ⸬ □) ↪ (#assume $v0);
 
-symbol move_∀_out (varList: 𝕃 string) ≔ #repeat (((#rewrite "" "" ∀∧_dist_r) #orelse (#rewrite  "" "" ∀∧_dist_l) #orelse (#rewrite  "" "" ∀∨_dist_r) #orelse (#rewrite "" "" ∀∨_dist_l)) #orelse (#and (#and (#refine "∀_ext _ _ _") (#simplify))) (tryVars varList));
+symbol move_∀_out (varList: 𝕃 string) ≔ #repeat (((#rewrite "" "" ∀∧_dist_r) #orelse (#rewrite  "" "" ∀∧_dist_l) #orelse (#rewrite  "" "" ∀∨_dist_r) #orelse (#rewrite "" "" ∀∨_dist_l)) #orelse (#and (#and (#refine "∀_ext _ _ _") (#simplify_beta))) (tryVars varList));
 
 symbol move_¬∃_out (varList: 𝕃 string) ≔ (#and (#rewrite "" "" ¬∃=∀¬) (move_∀_out varList));
 
@@ -303,7 +275,7 @@ symbol generalizeQuant (varList: 𝕃 string) ≔ (move_∀_out varList) #orelse
 
 symbol skolemProzess_∃ sk_def : Tactic ≔ (#and (#and (#rewrite "" "" ∃_skolem) #simplify_beta) sk_def);
 
-symbol skolemProzess_∀ sk_def : Tactic ≔ (#and (#and (#rewrite "" "" ∀_skolem) #simplify_beta) sk_def) ;
+symbol skolemProzess_∀ sk_def : Tactic ≔ (#and (#and (#rewrite "" "" ∀_skolem) #simplify_beta) sk_def);
 
 symbol skolemProzess sk_def : Tactic ≔ (skolemProzess_∀ sk_def) #orelse (skolemProzess_∃ sk_def);
 
@@ -311,8 +283,14 @@ symbol stepwise_quants: 𝕃 tactic → Tactic;
 rule stepwise_quants ($sk1 ⸬ ($sk2 ⸬ $sk3)) ↪ #repeat ((#and $sk1 (stepwise_quants ($sk2 ⸬ $sk3))) #orelse boolIds)
 with stepwise_quants ($sk1 ⸬ □) ↪ #and (#repeat ($sk1 #orelse boolIds)) #reflexivity;
 
-symbol move_∀_out2 (assumeVar: Tactic) ≔ #repeat (((#rewrite "" "" ∀∧_dist_r) #orelse (#rewrite  "" "" ∀∧_dist_l) #orelse (#rewrite  "" "" ∀∨_dist_r) #orelse (#rewrite "" "" ∀∨_dist_l)) #orelse (#and (#and (#refine "∀_ext _") (#simplify))) assumeVar);
+symbol move_∀_out2 (assumeVar: Tactic) ≔ ((#and (#and (((#and (#repeat  (#rewrite "" ".[x in x = _]" ¬¬ₑ_eq)) (#refine "∀_ext _"))) #orelse (#refine "∀_ext _")) (#simplify_beta)) assumeVar) #orelse ((#rewrite "" "" ∀∧_dist_r) #orelse (#rewrite  "" "" ∀∧_dist_l) #orelse (#rewrite  "" "" ∀∨_dist_r) #orelse (#rewrite "" "" ∀∨_dist_l)));
 symbol move_¬∃_out2 (assumeVar: Tactic) ≔ (#and (#rewrite "" "" ¬∃=∀¬) (move_∀_out2 assumeVar));
+
+symbol singleStepQuant: Tactic → Tactic;
+rule singleStepQuant $t ↪ #repeat ($t #orelse boolIds);
+
+symbol lastStepQuant: Tactic → Tactic;
+rule lastStepQuant $t ↪ #and (#repeat ($t #orelse boolIds)) #reflexivity;
 
 symbol stepwise_skolem0: 𝕃 tactic → Tactic;
 rule stepwise_skolem0 ($sk1 ⸬ ($sk2 ⸬ $sk3)) ↪ #repeat ((#and (skolemProzess $sk1) (stepwise_skolem0 ($sk2 ⸬ $sk3))) #orelse boolIds)
