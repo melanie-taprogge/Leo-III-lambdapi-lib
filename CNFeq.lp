@@ -4,7 +4,8 @@ require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.
 *  Definition of Leo-III simplification tactic        
 ******************************************************************************/
 
-opaque symbol ¬x=_idem : Π x, π (((¬ x) = x) = ⊥)≔
+opaque symbol ¬x=_idem : Π x, 
+    π (((¬ x) = x) = ⊥)≔
 begin
     assume x;
     refine propExt ((¬ x )= x) ⊥ _ _
@@ -18,7 +19,8 @@ begin
         refine ⊥ₑ h}
 end;
 
-opaque symbol =¬x_idem : Π x, π ((x = (¬ x)) = ⊥)≔
+opaque symbol =¬x_idem : Π x, 
+    π ((x = (¬ x)) = ⊥)≔
 begin
     assume x;
     rewrite =_sym x (¬ x);
@@ -30,8 +32,25 @@ end;
 *  Definition of additional rules for clausification      
 ******************************************************************************/
 
+opaque symbol eta_exp [a b : Set] (f : τ (a ⤳ b)) : 
+    π(f = λ x, f x)≔
+begin
+    assume a b f;
+    refine funExt (f) (λ x, f x) _;
+    assume x;
+    reflexivity
+end;
+
+opaque symbol eta_exp_∀ [a : Set] (f : τ (a ⤳ o)) : 
+    π(∀ f = `∀ x, f x)≔
+begin
+    assume a f;
+    rewrite .[x in ∀ x = _] eta_exp f;
+    reflexivity
+end;
+
 opaque symbol ¬∀=∃¬ (t : Set) (p : τ (t ⤳ o)) : //lemma6
-π (¬(∀ p) = (`∃ (x : τ t), ¬ (p x)))≔
+    π (¬(∀ p) = (`∃ (x : τ t), ¬ (p x)))≔
 begin
 assume t p;
 refine propExt (¬ (∀ p)) (`∃ x, ¬ (p x)) _ _
@@ -41,45 +60,53 @@ refine propExt (¬ (∀ p)) (`∃ x, ¬ (p x)) _ _
     {assume hne;
         have forall_p : Π x : τ t, π (p x)
             {assume a; refine ¬¬ₑ (p a) (λ hp, hne (∃ᵢ [t] [λ y, ¬ p y] a hp))};
-        refine ⊥ₑ (h (λ a, forall_p a))}}
+        have forall_p2 : π (∀ p)
+            {rewrite eta_exp p; refine forall_p};
+        refine ⊥ₑ (h forall_p2)}}
 {assume h h2;
-    refine ∃ₑ [t] [λ y, ¬ p y] h (λ a hna, hna (h2 a))}
+    refine ∃ₑ h _;
+    assume x h1;
+    have forAll_x_p : Π x, π (p x)
+        {assume y;
+        refine (=⇒ (eta_exp_∀ p) h2) y};
+    refine h1 (forAll_x_p x)}
 end;
 
 opaque symbol ¬∃=∀¬ (t : Set) (p : τ (t ⤳ o)) : // lemma7
-π (¬(∃ p) = (`∀ (x : τ t), ¬ p x))≔     
+    π (¬(∃ p) = (`∀ (x : τ t), ¬ p x))≔     
 begin
 assume t p;
 refine propExt (¬ (∃ p)) (`∀ x, ¬ p x) _ _
-{assume h a ha; refine h (∃ᵢ [t] [p] a ha)}
-{assume h1 h2; refine ∃ₑ [t] [p] h2 (λ a ha, (h1 a) ha)}
+    {assume h a ha; refine h (∃ᵢ [t] [p] a ha)}
+    {assume h1 h2; refine ∃ₑ [t] [p] h2 (λ a ha, (h1 a) ha)}
 end;
 
 
 //  Skolemisazion
 
 
-opaque symbol εᵢ_rev :  Π [a: Set], Π p: (τ a → Prop),  π (p (ε p)) → π (∃ p)≔
+opaque symbol εᵢ_rev :  Π [a: Set], Π p: (τ a → Prop),  
+    π (p (ε p)) → π (∃ p)≔
 begin
-assume a p h;
-refine ∃ᵢ [a] [p] (ε p) h
+    assume a p h;
+    refine ∃ᵢ [a] [p] (ε p) h
 end;
 
 opaque symbol ∃_skolem (a: Set) (p: τ (a ⤳ o)) :  
- π ((∃ p) = (p (ε p)))≔
+    π ((∃ p) = (p (ε p)))≔
 begin
- assume a p;
- refine propExt (∃ p) (p (ε p)) (εᵢ [a] p) (εᵢ_rev [a] p)
+    assume a p;
+    refine propExt (∃ p) (p (ε p)) (εᵢ [a] p) (εᵢ_rev [a] p)
 end;
 
 opaque symbol ∀_skolem (a: Set) (p: τ (a ⤳ o)) :  
-π (¬ (∀ p) = ¬ (p (ε (λ x, ¬ (p x)))))≔
+    π (¬ (∀ p) = ¬ (p (ε (λ x, ¬ (p x)))))≔
 begin
-assume a p;
-rewrite ¬∀=∃¬;
-refine  propExt (`∃ x, ¬ (p x)) (¬ (p (ε (λ x, ¬ (p x))))) _ _
-    {assume h; refine ind_eq (eq_sym (∃_skolem a (λ x, ¬ (p x)))) (λ x, x) h}
-    {assume h; refine ind_eq (∃_skolem a (λ x, ¬ (p x))) (λ x, x) h}
+    assume a p;
+    rewrite ¬∀=∃¬;
+    refine  propExt (`∃ x, ¬ (p x)) (¬ (p (ε (λ x, ¬ (p x))))) _ _
+        {assume h; refine ind_eq (eq_sym (∃_skolem a (λ x, ¬ (p x)))) (λ x, x) h}
+        {assume h; refine ind_eq (∃_skolem a (λ x, ¬ (p x))) (λ x, x) h}
 end;
 
 
@@ -90,7 +117,7 @@ begin
     assume t a p;
     refine propExt (a ∧ ∀ p) (∀(λ x, a ∧ p x)) _ _
         {assume h x;
-        refine ∧ᵢ (∧ₑ₁ h) ((∧ₑ₂ h) x)}
+        refine ∧ᵢ (∧ₑ₁ h) ((=⇒ (eta_exp_∀ p) (∧ₑ₂ h)) x)}
         {assume h;
         refine ∨ₑ (em (∀ p)) _ _
             {assume h1;
@@ -130,7 +157,7 @@ begin
             {assume h0;
             refine ∨ᵢ₁ h0}
             {assume h0;
-            refine ∨ᵢ₂ (h0 x)}}
+            refine ∨ᵢ₂ ((=⇒ (eta_exp_∀ p) h0) x)}}
         {assume h;
         refine ∨ₑ (em (∀ p)) _ _
             {assume h1;

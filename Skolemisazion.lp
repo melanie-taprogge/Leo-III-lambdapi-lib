@@ -1,5 +1,24 @@
 require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.PropExt Leo-III-lambdapi-lib.Epsilon;
 
+require open Stdlib.FunExt;
+
+opaque symbol eta_exp [a b : Set] (f : τ (a ⤳ b)) : 
+    π(f = λ x, f x)≔
+begin
+    assume a b f;
+    refine funExt (f) (λ x, f x) _;
+    assume x;
+    reflexivity
+end;
+
+opaque symbol eta_exp_∀ [a : Set] (f : τ (a ⤳ o)) : 
+    π(∀ f = `∀ x, f x)≔
+begin
+    assume a f;
+    rewrite .[x in ∀ x = _] eta_exp f;
+    reflexivity
+end;
+
 opaque symbol ¬∀=∃¬ (t : Set) (p : τ (t ⤳ o)) : 
     π (¬(∀ p) = (`∃ (x : τ t), ¬ (p x)))≔
 begin
@@ -11,10 +30,19 @@ refine propExt (¬ (∀ p)) (`∃ x, ¬ (p x)) _ _
     {assume hne;
         have forall_p : Π x : τ t, π (p x)
             {assume a; refine ¬¬ₑ (p a) (λ hp, hne (∃ᵢ [t] [λ y, ¬ p y] a hp))};
-        refine ⊥ₑ (h (λ a, forall_p a))}}
+        have forall_p2 : π (∀ p)
+            {rewrite eta_exp p; refine forall_p};
+        refine ⊥ₑ (h forall_p2)}}
 {assume h h2;
-    refine ∃ₑ [t] [λ y, ¬ p y] h (λ a hna, hna (h2 a))}
+    refine ∃ₑ h _;
+    assume x h1;
+    have forAll_x_p : Π x, π (p x)
+        {assume y;
+        refine (=⇒ (eta_exp_∀ p) h2) y};
+    refine h1 (forAll_x_p x)}
 end;
+
+
 
 opaque symbol ¬∃=∀¬ (t : Set) (p : τ (t ⤳ o)) : 
     π (¬(∃ p) = (`∀ (x : τ t), ¬ p x))≔     
@@ -59,7 +87,7 @@ begin
     assume t a p;
     refine propExt (a ∧ ∀ p) (∀(λ x, a ∧ p x)) _ _
         {assume h x;
-        refine ∧ᵢ (∧ₑ₁ h) ((∧ₑ₂ h) x)}
+        refine ∧ᵢ (∧ₑ₁ h) ((=⇒ (eta_exp_∀ p) (∧ₑ₂ h)) x)}
         {assume h;
         refine ∨ₑ (em (∀ p)) _ _
             {assume h1;
@@ -99,7 +127,7 @@ begin
             {assume h0;
             refine ∨ᵢ₁ h0}
             {assume h0;
-            refine ∨ᵢ₂ (h0 x)}}
+            refine ∨ᵢ₂ ((=⇒ (eta_exp_∀ p) h0) x)}}
         {assume h;
         refine ∨ₑ (em (∀ p)) _ _
             {assume h1;
