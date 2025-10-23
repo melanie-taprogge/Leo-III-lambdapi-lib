@@ -1,4 +1,4 @@
-require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.FunExt Stdlib.PropExt Stdlib.Nat Stdlib.Bool Stdlib.List Leo-III-lambdapi-lib.Epsilon Leo-III-lambdapi-lib.CNFeq;
+require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.FunExt Stdlib.PropExt Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Epsilon Leo-III-lambdapi-lib.CNFeq;
 
  constant symbol Tactic : TYPE;
  symbol tactic : Set;
@@ -121,6 +121,7 @@ symbol boolIds ≔ (applyAny allCNFids_list);
 
 symbol onlyBoolIds ≔ #and (#repeat boolIds) #reflexivity;
 
+
 // skolemisazion
 
 symbol skolemProzess_∃ sk_def : Tactic ≔ (#and (#and (#rewrite "" "" ∃_skolem) #simplify_beta) sk_def);
@@ -137,7 +138,8 @@ symbol stepwise_skolem: (Tactic → Tactic) → 𝕃 tactic → Tactic;
 rule stepwise_skolem $t ($sk1 ⸬ ($sk2 ⸬ $sk3)) ↪ #repeat ((#and ($t $sk1) (stepwise_skolem $t ($sk2 ⸬ $sk3))) #orelse boolIds)
 with stepwise_skolem $t ($sk1 ⸬ □) ↪ #and (#repeat (($t $sk1) #orelse boolIds)) #reflexivity;
 
-// generalizing quatnifiers
+
+// handling universal quantification
 
 symbol stepwise_quants: 𝕃 tactic → Tactic;
 rule stepwise_quants ($sk1 ⸬ ($sk2 ⸬ $sk3)) ↪ #repeat ((#and $sk1 (stepwise_quants ($sk2 ⸬ $sk3))) #orelse boolIds)
@@ -146,6 +148,3 @@ with stepwise_quants ($sk1 ⸬ □) ↪ #and (#repeat ($sk1 #orelse boolIds)) #r
 symbol move_∀_out (assumeVar: Tactic) ≔ ((#and (#and (((#and (#repeat  (#rewrite "" ".[x in x = _]" ¬¬ₑ_eq)) (#refine "∀_ext _"))) #orelse (#refine "∀_ext _")) (#simplify_beta)) assumeVar) #orelse ((#rewrite "" "" ∀∧_dist_r) #orelse (#rewrite  "" "" ∀∧_dist_l) #orelse (#rewrite  "" "" ∀∨_dist_r) #orelse (#rewrite "" "" ∀∨_dist_l)));
 
 symbol move_¬∃_out (assumeVar: Tactic) ≔ (#and (#rewrite "" "" ¬∃=∀¬) (move_∀_out assumeVar));
-
-
-

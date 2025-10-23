@@ -1,4 +1,36 @@
-require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.FunExt Stdlib.PropExt Stdlib.Nat Stdlib.Bool Stdlib.List Leo-III-lambdapi-lib.Epsilon;
+require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.FunExt Stdlib.PropExt Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Epsilon;
+
+// prelim: to be added to the stdlib
+
+opaque symbol eta_exp [a] [b] (f : τ a → τ b) :  
+    π (f = (λ y , f y))≔
+begin
+    assume a b f; 
+    refine funExt f (λ y , f y) _;
+    simplify; reflexivity
+end;
+
+opaque symbol ∨_sym x y : π ((x ∨ y) = (y ∨ x))≔
+begin
+  assume x y;
+  refine propExt (x ∨ y) (y ∨ x) _ _
+    {assume h0;
+    refine ∨ₑ h0 _ _
+      {assume h1; refine ∨ᵢ₂ h1}
+      {assume h1; refine ∨ᵢ₁ h1}}
+    {assume h0;
+    refine ∨ₑ h0 _ _
+      {assume h1; refine ∨ᵢ₂ h1}
+      {assume h1; refine ∨ᵢ₁ h1}}
+end;
+
+opaque symbol ∧_sym x y : π ((x ∧ y) = (y ∧ x))≔
+begin
+  assume x y;
+  refine propExt (x ∧ y) (y ∧ x) _ _
+    {assume h; refine ∧ᵢ (∧ₑ₂ h) (∧ₑ₁ h)}
+    {assume h; refine ∧ᵢ (∧ₑ₂ h) (∧ₑ₁ h)}
+end;
 
 /******************************************************************************
 *  Definition of Leo-III simplification tactic        
