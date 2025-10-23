@@ -4,22 +4,15 @@
 
 The library aims to prove the following meta-theorems for conjunctions and disjunctions:
 
-** Select:
-   This theorem is used when we need to isolate a single clause out of a conjunction of clauses. 
-   For instance, suppose we have a conjunction of clauses  `π (c0 ∧ c1 ∧ c2)` and we want to 
-   select the clause at position `id`.
+** Natural Deduction rules over lists:
+   - ∨ᵢₙ₁ and ∨ᵢₙ₂ are n-ary versions of the introduction rule for ∨.
+   - ∨ₑₙ is the n-ary version of the elimination rule for ∨.
+   - ∧ᵢₙ is the n-ary version of the introduction rule for ∧.
+   - ∧ₑₙ is the n-ary version of the elimination rule for ∧.
 
+** Permute:
    The theorem is instantiated with:
-   - A natural number `id`, the position of the desired clause in the conjunction.
-   - A list of clauses `cnf : 𝕃 o` representing the conjunction.
-
-   The theorem checks whether `id` is indeed in the indexes of `cnf`.  If it is, then from 
-   `π (conj cnf)` it extracts the single clause `π (literal cnf id)`. In other words, it maps 
-   the entire conjunction of clauses to the one at position `id`.
-
-** Permutate:
-   The theorem is instantiated with:
-   - A list of natural numbers representing a disjunction.
+   - A list of natural numbers representing a permutation.
    - A list of terms of type `o` representing a clause.
 
    The theorem verifies that the permuted clause still contains all literals of the original clause. 
@@ -27,10 +20,10 @@ The library aims to prove the following meta-theorems for conjunctions and disju
 
 ** Delete:
    The theorem is instantiated with three lists:
-   - A list of natural numbers representing the indices of literals in the original list. 
+   1. A list of natural numbers representing the indices of literals in the original list. 
      For literals occurring multiple times, the index of the first occurrence is used for all of the
      subsequent occurrences. For example, for `π (l0 ∨ l1 ∨ l2 ∨ l1)`, this list would be `(0, 1, 2, 1)`.
-   - A second list of natural numbers indicating the desired positions of the literals in the clause.
+   2. A second list of natural numbers indicating the desired positions of the literals in the clause.
      If for instance the second occurrence of `l1` in `π (l0 ∨ l1 ∨ l2 ∨ l1)` should be deleted, the 
      derived clause would be `π (l0 ∨ l1 ∨ l2)`, and the list that must be provided would be (0, 1, 2).
      To delete the first occurrence of `l1`, and derive the clause `π (l0 ∨ l2 ∨ l1)`, the list would 
@@ -107,7 +100,7 @@ assert l0 l1 l2 ⊢ literals (l0 ⸬ l1 ⸬ l2  ⸬ l1 ⸬ □) (1 ⸬ 2 ⸬ 0 �
 
 // lemmas on ∈ₙ
 
-symbol indexes_shift (l: 𝕃 nat) (n : τ nat):
+opaque symbol indexes_shift (l: 𝕃 nat) (n : τ nat):
     π (istrue ((n +1) ∈ₙ (map (+1) l)) ⇒ istrue (n ∈ₙ l))≔
 begin
     induction
@@ -123,7 +116,7 @@ begin
                 refine orᵢ₂ (eqn n2 n0) (h1 n2 h3)}}}
 end;
 
-symbol indexes_decrement (id : τ nat) (l0: τ o) (l: 𝕃 o): 
+opaque symbol indexes_decrement (id : τ nat) (l0: τ o) (l: 𝕃 o): 
      π ((id +1) ∈ₙ (indexes (l0 ⸬ l))) → π (id ∈ₙ (indexes l))≔
 begin
     assume id l0 l;
@@ -293,6 +286,15 @@ begin
         refine h2}
 end;
 
+opaque symbol conj_sound (c0 : τ o) (c : 𝕃 o) : 
+    π (c0 ∧ conj c) →  π (conj (c0 ⸬ c)) ≔
+begin
+    assume c0;
+    induction
+        {assume h1; refine ∧ₑ₁ h1}
+        {assume x1 c1 h1 h2; refine h2}
+end;
+
 
 // ⊆
 
@@ -343,12 +345,82 @@ end;
 
 
 ////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////// meta-therems /////////////////////////////////
+///////////////////////////////// meta-theorems ////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-// clause selection theorem
+///////////////////// Natural Deduction rules over lists ///////////////////////
 
-opaque symbol select (id : τ nat) (cnf: 𝕃 o) : 
+// ∨ᵢₙ₁ and ∨ᵢₙ₂
+opaque symbol ∨ᵢₙ₂ (c0 : 𝕃 o) (c1 : 𝕃 o) : 
+    π (disj c1) → π (disj (c0 ++ c1))≔
+begin
+    induction
+        {assume x h; refine h}
+        {assume x0 l0 h0 l1 h1; simplify;
+        rewrite disj_correct; refine ∨ᵢ₂ (h0 l1 h1)}
+end;
+opaque symbol ∨ᵢₙ₁ (c0 : 𝕃 o) (c1 : 𝕃 o) : 
+    π (disj c0) → π (disj (c0 ++ c1))≔
+begin
+    induction
+        {assume x h; refine ⊥ₑ h}
+        {assume x0 l h0 x1; 
+        rewrite disj_correct; assume h1; simplify; 
+        rewrite disj_correct;
+        refine ∨ₑ h1 _ _
+            {assume h2; refine ∨ᵢ₁ h2}
+            {assume h2; refine ∨ᵢ₂ (h0 x1 h2)}}
+end;
+
+// ∨ₑₙ 
+symbol rem_n [a : Set]: 𝕃 a → ℕ → 𝕃 a;
+rule rem_n $l $n ↪ (take $n $l) ++ (drop ($n +1) $l);
+opaque symbol ∨ₑₙ (n : ℕ) (c : 𝕃 o) [r : Prop] : 
+    π (disj c) → π (literal c n ⇒ r) → π (disj (rem_n c n) ⇒ r) → π r ≔
+begin
+    induction
+        {induction
+            {assume x h0 h1 h2; refine ⊥ₑ h0}
+            {assume l0 l h0 r h1 h2 h3;
+             refine ∨ₑ (=⇒ (disj_correct l0 l) h1) _ _
+                {assume h4; refine h2 h4}
+                {assume h4; refine h3 h4}}}
+        {assume n h0; induction
+            {assume r h1 h2 h3; refine ⊥ₑ h1}
+            {assume l0 l h1 r h2 h3 h4;
+            have H1 : π ((l0  ∨ (disj (rem_n l n))) ⇒ r)
+                    {rewrite left disj_correct; refine h4};
+            refine ∨ₑ (em l0) _ _
+                {assume h5;
+                refine H1 ((∨ᵢ₁ [l0] [disj (rem_n l n)]) h5)}
+                {assume h5;
+                have l0is⊥ : π (⊥ = l0)
+                    {refine propExt ⊥ l0 _ _
+                        {assume h6; refine ⊥ₑ h6}
+                         {assume h6; refine h5 h6}};
+                refine h0 l r _ h3 _
+                    {rewrite left ⊥∨; rewrite l0is⊥;
+                    rewrite left disj_correct l0 l; refine h2}
+                    {rewrite left ⊥∨ (disj (rem_n l n)); 
+                    rewrite l0is⊥; refine H1}}}}        
+end;
+
+// ∧ᵢₙ 
+opaque symbol ∧ᵢₙ (c0 : 𝕃 o) (c1 : 𝕃 o) : 
+    π (conj c0) → π (conj c1) → π (conj (c0 ++ c1))≔
+begin
+    induction
+        {assume x h0 h1;
+        refine h1}
+        {assume x0 l0 h0 l1 h1 h2;
+        refine conj_sound x0 (l0 ++ l1) _;
+        refine ∧ᵢ _ _
+            {refine conj_head x0 l0 h1}
+            {refine h0 l1 (conj_tail x0 l0 h1) h2}}
+end;
+
+// ∧ₑₙ 
+opaque symbol ∧ₑₙ (id : τ nat) (cnf: 𝕃 o) : 
     π (id ∈ₙ (indexes cnf)) → π (conj cnf) → π (literal cnf id) ≔
 begin
     induction 
@@ -365,23 +437,17 @@ begin
             refine literal_ext cnf x id (ConjImpCl (conj_tail x cnf h3))}}
 end;
 
-assert c0 c1 c2 c2' ⊢ select 2 (c0 ⸬ c1 ⸬ c2 ⸬ c1 ⸬ □): 
-    (π ⊤) →  π (c0 ∧ c1 ∧ c2 ∧ c1) → π (c2);
 
-
-// permutation theorem 
-
+// permutation theorem /////////////////////////////////////////////////////////
 opaque symbol permute (σ : 𝕃 nat) (c: 𝕃 o) : 
     π (preserves_contents σ c) → π(disj c) → π(disj (literals c σ)) ≔
 begin
     assume σ c h1 h2;
-    
     have H1: Π x: τ nat,
         π ((λ x1, literal c x1 ∧ x1 ∈ₙ indexes c) x)
         → π (`∃ y, literal c y ∧ y ∈ₙ σ)
         {assume x0 h3;
         refine ∃ᵢ x0 (∧ᵢ (∧ₑ₁ h3) (preserves_contents_correct x0 σ c h1 (∧ₑ₂ h3)))};
-    
     have H2: π (`∃ y, literal c y ∧ y ∈ₙ σ)
         {have H3: π (disj (nths ⊥ c (indexes c)))
             {rewrite nths_indexes_id ⊥ c;
@@ -393,10 +459,7 @@ end;
 assert l0 l1 l2 ⊢ permute (1 ⸬ 2 ⸬ 0 ⸬ 3 ⸬ □) (l0 ⸬ l1 ⸬ l2 ⸬ l0 ⸬ □) ⊤ᵢ : 
     π (l0 ∨ l1 ∨ l2 ∨ l0) → π (l1 ∨ l2 ∨ l0 ∨ l0);
 
-
-
-// double literal deletion theorem
-
+// double literal deletion theorem /////////////////////////////////////////////
 opaque symbol delete (id_list : 𝕃 nat) (output_list : 𝕃 nat) (c: 𝕃 o) : 
     π (id_list ⊆ₙ output_list) → π(disj (literals c id_list)) → π(disj (literals c output_list)) ≔
 begin
@@ -411,9 +474,7 @@ end;
 assert l0 l1 l2 ⊢ delete (0 ⸬ 1 ⸬ 2 ⸬ 1 ⸬ □) (0 ⸬ 1 ⸬ 2 ⸬ □) (l0 ⸬ l1 ⸬ l2 ⸬ l1 ⸬ □) ⊤ᵢ : 
     π (l0 ∨ l1 ∨ l2 ∨ l1) → π (l0 ∨ l1 ∨ l2);
 
-
-// transformation theorem 
-
+// transformation theorem //////////////////////////////////////////////////////
 opaque symbol transform [l : τ o] (c: 𝕃 o) (n : τ nat) : 
 π ((literal c n) ⇒ l) → π (disj c) → π (disj (set_nth ⊥ c n l)) ≔
 begin

@@ -23,48 +23,9 @@ The clausification process is split up into four seperate processes:
 
 require open Stdlib.FunExt;
 require open Stdlib.Impred Stdlib.PropExt;
-require open Leo-III-lambdapi-lib.MetaTheorems;
-require open Leo-III-lambdapi-lib.Skolemisazion;
+require open Stdlib.MetaTheorems;
+require open Leo-III-lambdapi-lib.CNFeq;
 
-// Add to Std lib?
-symbol ∨_sym x y : π ((x ∨ y) = (y ∨ x))≔
-begin
-    assume x y;
-    refine propExt (x ∨ y) (y ∨ x) _ _
-        {assume h0;
-        refine ∨ₑ h0 _ _
-            {assume h1; refine ∨ᵢ₂ h1}
-            {assume h1; refine ∨ᵢ₁ h1}}
-        {assume h0;
-        refine ∨ₑ h0 _ _
-            {assume h1; refine ∨ᵢ₂ h1}
-            {assume h1; refine ∨ᵢ₁ h1}}
-end;
-
-symbol ∧_sym x y : π ((x ∧ y) = (y ∧ x))≔
-begin
-    assume x y;
-    refine propExt (x ∧ y) (y ∧ x) _ _
-        {assume h0; refine ∧ᵢ (∧ₑ₂ h0) (∧ₑ₁ h0)}
-        {assume h0; refine ∧ᵢ (∧ₑ₂ h0) (∧ₑ₁ h0)}
-end;
-
-symbol ∧_asso a b : 
-    π ((a ∧ (b ∧ a)) = (b ∧ a)) ≔
-begin
-    assume a b;
-    refine propExt (a ∧ (b ∧ a)) (b ∧ a) _ _
-        {assume h0; refine ∧ₑ₂ h0}
-        {assume h0; refine ∧ᵢ (∧ₑ₂ h0) h0}
-end;
-
-symbol eta_exp [a] [b] (f : τ a → τ b) :  
-    π (f = (λ y , f y))≔
-begin
-    assume a b f;
-    refine funExt f (λ y , f y) _;
-    simplify; reflexivity
-end;
 
 symbol a : Prop;
 symbol b : Prop;
@@ -249,11 +210,11 @@ with dist_denote (dist_Or $x $y) ↪ (dist_denote $x) ∨ (dist_denote $y)
 with dist_denote (dist_Other $x) ↪ $x;
 
 symbol prepend_each [a] : 𝕃 a → 𝕃 (list a) → 𝕃 (list a);
-rule prepend_each $x □ ↪ □
+rule prepend_each _ □ ↪ □
 with prepend_each $x ($l0 ⸬ $l) ↪ ($x ++ $l0) ⸬ (prepend_each $x $l);
 symbol cartesian_prepend [a] : 𝕃 (list a) → 𝕃 (list a) → 𝕃 (list a);
 rule cartesian_prepend ($l0 ⸬ $l) $n ↪ (prepend_each $l0 $n) ++ (cartesian_prepend $l $n)
-with cartesian_prepend □ $n ↪ □;
+with cartesian_prepend □ _ ↪ □;
 
 symbol dist_disj : 𝕃 dist_prop_S → dist_prop;
 rule dist_disj ($l0 ⸬ ($l1 ⸬ $l)) ↪ dist_Or $l0 (dist_disj ($l1 ⸬ $l))
@@ -388,6 +349,15 @@ begin
     reflexivity
 end;
 
+symbol ∧_asso a b : 
+    π ((a ∧ (b ∧ a)) = (b ∧ a)) ≔
+begin
+    assume a b;
+    refine propExt (a ∧ (b ∧ a)) (b ∧ a) _ _
+        {assume h0; refine ∧ₑ₂ h0}
+        {assume h0; refine ∧ᵢ (∧ₑ₂ h0) h0}
+end;
+
 symbol cartesian_prepend_correct x y : 
     π (dist_denote (dist_Or (dist_conj x) (dist_conj y)) = dist_denote (dist_conj (cartesian_prepend x y)))≔
 begin
@@ -395,7 +365,7 @@ begin
         {simplify; assume x; rewrite ⊤∨; reflexivity}
         {assume x; assume l h0;
             induction
-                {simplify; rewrite ∨⊤; type (h0 □); rewrite left (h0 □); simplify; rewrite ∨⊤; 
+                {simplify; rewrite ∨⊤; rewrite left (h0 □); simplify; rewrite ∨⊤; 
                 reflexivity}
                 {assume y z h1; simplify dist_denote; rewrite dist_denote_correct_⸬; rewrite dist_denote_correct_⸬; simplify dist_denote; 
                 rewrite cartesian_prepend_double; rewrite dist_denote_correct_⸬; simplify dist_denote; rewrite left dist_denote_correct_++; 

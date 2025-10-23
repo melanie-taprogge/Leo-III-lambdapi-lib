@@ -1,4 +1,36 @@
-require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.FunExt Stdlib.PropExt Stdlib.Nat Stdlib.Bool Stdlib.List Leo-III-lambdapi-lib.Epsilon;
+require open Stdlib.Set Stdlib.Prop Stdlib.Classic Stdlib.FOL Stdlib.HOL Stdlib.Eq Stdlib.Impred Stdlib.FunExt Stdlib.PropExt Stdlib.Nat Stdlib.Bool Stdlib.List Stdlib.Epsilon;
+
+// prelim: to be added to the stdlib
+
+opaque symbol eta_exp [a] [b] (f : τ a → τ b) :  
+    π (f = (λ y , f y))≔
+begin
+    assume a b f; 
+    refine funExt f (λ y , f y) _;
+    simplify; reflexivity
+end;
+
+opaque symbol ∨_sym x y : π ((x ∨ y) = (y ∨ x))≔
+begin
+  assume x y;
+  refine propExt (x ∨ y) (y ∨ x) _ _
+    {assume h0;
+    refine ∨ₑ h0 _ _
+      {assume h1; refine ∨ᵢ₂ h1}
+      {assume h1; refine ∨ᵢ₁ h1}}
+    {assume h0;
+    refine ∨ₑ h0 _ _
+      {assume h1; refine ∨ᵢ₂ h1}
+      {assume h1; refine ∨ᵢ₁ h1}}
+end;
+
+opaque symbol ∧_sym x y : π ((x ∧ y) = (y ∧ x))≔
+begin
+  assume x y;
+  refine propExt (x ∧ y) (y ∧ x) _ _
+    {assume h; refine ∧ᵢ (∧ₑ₂ h) (∧ₑ₁ h)}
+    {assume h; refine ∧ᵢ (∧ₑ₂ h) (∧ₑ₁ h)}
+end;
 
 /******************************************************************************
 *  Definition of Leo-III simplification tactic        
@@ -32,15 +64,6 @@ end;
 *  Definition of additional rules for clausification      
 ******************************************************************************/
 
-opaque symbol eta_exp [a b : Set] (f : τ (a ⤳ b)) : 
-    π(f = λ x, f x)≔
-begin
-    assume a b f;
-    refine funExt (f) (λ x, f x) _;
-    assume x;
-    reflexivity
-end;
-
 opaque symbol eta_exp_∀ [a : Set] (f : τ (a ⤳ o)) : 
     π(∀ f = `∀ x, f x)≔
 begin
@@ -49,7 +72,7 @@ begin
     reflexivity
 end;
 
-opaque symbol ¬∀=∃¬ (t : Set) (p : τ (t ⤳ o)) : //lemma6
+opaque symbol ¬∀=∃¬ (t : Set) (p : τ (t ⤳ o)) : 
     π (¬(∀ p) = (`∃ (x : τ t), ¬ (p x)))≔
 begin
 assume t p;
@@ -72,7 +95,7 @@ refine propExt (¬ (∀ p)) (`∃ x, ¬ (p x)) _ _
     refine h1 (forAll_x_p x)}
 end;
 
-opaque symbol ¬∃=∀¬ (t : Set) (p : τ (t ⤳ o)) : // lemma7
+opaque symbol ¬∃=∀¬ (t : Set) (p : τ t → τ o) : 
     π (¬(∃ p) = (`∀ (x : τ t), ¬ p x))≔     
 begin
 assume t p;
@@ -83,7 +106,6 @@ end;
 
 
 //  Skolemisazion
-
 
 opaque symbol εᵢ_rev :  Π [a: Set], Π p: (τ a → Prop),  
     π (p (ε p)) → π (∃ p)≔

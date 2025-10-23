@@ -81,7 +81,6 @@ begin
     assume T x y z v h1;
     refine ∨ₑ (em (x = y)) _ _ 
                 {assume h2;
-                type ∨ᵢ₁ [x = y] [¬ (x = z)] h2;
                 refine ∨ᵢ₁ h2}
                 {assume h3;
                 refine ∨ₑ (em (x = z)) _ _ 
