@@ -107,6 +107,8 @@ symbol applyAny : 𝕃 tactic → Tactic;
 *  Definition of Leo-III clausification tactic        
 ******************************************************************************/
 
+// Boolean identities
+
 symbol normAsso ≔ #repeat ((#rewrite "" "" ∧_assoc) #orelse (#rewrite "" "" ∨_assoc));
 
 symbol normAsso_∨ ≔ #repeat (#rewrite "" "" ∨_assoc);
@@ -117,34 +119,15 @@ symbol allCNFids_list ≔ ((#rewrite "" "" deMorgan_∧) ⸬ (#rewrite "" "" deM
 
 symbol boolIds ≔ (applyAny allCNFids_list);
 
-symbol tryVars: 𝕃 string → Tactic; 
-rule tryVars ($v0 ⸬ ($v1 ⸬ $vs)) ↪ (#assume $v0) #orelse (tryVars ($v1 ⸬ $vs))
-with tryVars ($v0 ⸬ □) ↪ (#assume $v0);
+symbol onlyBoolIds ≔ #and (#repeat boolIds) #reflexivity;
 
-symbol move_∀_out (varList: 𝕃 string) ≔ #repeat (((#rewrite "" "" ∀∧_dist_r) #orelse (#rewrite  "" "" ∀∧_dist_l) #orelse (#rewrite  "" "" ∀∨_dist_r) #orelse (#rewrite "" "" ∀∨_dist_l)) #orelse (#and (#and (#refine "∀_ext _ _ _") (#simplify_beta))) (tryVars varList));
-
-symbol move_¬∃_out (varList: 𝕃 string) ≔ (#and (#rewrite "" "" ¬∃=∀¬) (move_∀_out varList));
-
-symbol generalizeQuant (varList: 𝕃 string) ≔ (move_∀_out varList) #orelse (move_¬∃_out varList);
+// skolemisazion
 
 symbol skolemProzess_∃ sk_def : Tactic ≔ (#and (#and (#rewrite "" "" ∃_skolem) #simplify_beta) sk_def);
 
 symbol skolemProzess_∀ sk_def : Tactic ≔ (#and (#and (#rewrite "" "" ∀_skolem) #simplify_beta) sk_def);
 
 symbol skolemProzess sk_def : Tactic ≔ (skolemProzess_∀ sk_def) #orelse (skolemProzess_∃ sk_def);
-
-symbol stepwise_quants: 𝕃 tactic → Tactic;
-rule stepwise_quants ($sk1 ⸬ ($sk2 ⸬ $sk3)) ↪ #repeat ((#and $sk1 (stepwise_quants ($sk2 ⸬ $sk3))) #orelse boolIds)
-with stepwise_quants ($sk1 ⸬ □) ↪ #and (#repeat ($sk1 #orelse boolIds)) #reflexivity;
-
-symbol move_∀_out2 (assumeVar: Tactic) ≔ ((#and (#and (((#and (#repeat  (#rewrite "" ".[x in x = _]" ¬¬ₑ_eq)) (#refine "∀_ext _"))) #orelse (#refine "∀_ext _")) (#simplify_beta)) assumeVar) #orelse ((#rewrite "" "" ∀∧_dist_r) #orelse (#rewrite  "" "" ∀∧_dist_l) #orelse (#rewrite  "" "" ∀∨_dist_r) #orelse (#rewrite "" "" ∀∨_dist_l)));
-symbol move_¬∃_out2 (assumeVar: Tactic) ≔ (#and (#rewrite "" "" ¬∃=∀¬) (move_∀_out2 assumeVar));
-
-symbol singleStepQuant: Tactic → Tactic;
-rule singleStepQuant $t ↪ #repeat ($t #orelse boolIds);
-
-symbol lastStepQuant: Tactic → Tactic;
-rule lastStepQuant $t ↪ #and (#repeat ($t #orelse boolIds)) #reflexivity;
 
 symbol stepwise_skolem0: 𝕃 tactic → Tactic;
 rule stepwise_skolem0 ($sk1 ⸬ ($sk2 ⸬ $sk3)) ↪ #repeat ((#and (skolemProzess $sk1) (stepwise_skolem0 ($sk2 ⸬ $sk3))) #orelse boolIds)
@@ -154,12 +137,15 @@ symbol stepwise_skolem: (Tactic → Tactic) → 𝕃 tactic → Tactic;
 rule stepwise_skolem $t ($sk1 ⸬ ($sk2 ⸬ $sk3)) ↪ #repeat ((#and ($t $sk1) (stepwise_skolem $t ($sk2 ⸬ $sk3))) #orelse boolIds)
 with stepwise_skolem $t ($sk1 ⸬ □) ↪ #and (#repeat (($t $sk1) #orelse boolIds)) #reflexivity;
 
-symbol handleQuants (varList: 𝕃 string) (allSkolemRW : 𝕃 tactic) ≔ ((stepwise_skolem skolemProzess_∀ allSkolemRW) #orelse (move_∀_out varList)) #orelse ((move_¬∃_out varList) #orelse (stepwise_skolem skolemProzess_∃ allSkolemRW));
+// generalizing quatnifiers
 
-symbol onlyBoolIds ≔ #and (#repeat boolIds) #reflexivity;
+symbol stepwise_quants: 𝕃 tactic → Tactic;
+rule stepwise_quants ($sk1 ⸬ ($sk2 ⸬ $sk3)) ↪ #repeat ((#and $sk1 (stepwise_quants ($sk2 ⸬ $sk3))) #orelse boolIds)
+with stepwise_quants ($sk1 ⸬ □) ↪ #and (#repeat ($sk1 #orelse boolIds)) #reflexivity;
 
-symbol cnfTac : 𝕃 string → 𝕃 tactic → Tactic;
-rule cnfTac □ □ ↪ #and (#repeat boolIds) #reflexivity
-with cnfTac ($v0 ⸬ $v) □ ↪  #repeat ((generalizeQuant ($v0 ⸬ $v)) #orelse boolIds)
-with cnfTac □ ($s0 ⸬ $s) ↪  stepwise_skolem skolemProzess ($s0 ⸬ $s)
-with cnfTac ($v0 ⸬ $v) ($s0 ⸬ $s) ↪ #repeat ((handleQuants ($v0 ⸬ $v) ($s0 ⸬ $s)) #orelse boolIds);
+symbol move_∀_out (assumeVar: Tactic) ≔ ((#and (#and (((#and (#repeat  (#rewrite "" ".[x in x = _]" ¬¬ₑ_eq)) (#refine "∀_ext _"))) #orelse (#refine "∀_ext _")) (#simplify_beta)) assumeVar) #orelse ((#rewrite "" "" ∀∧_dist_r) #orelse (#rewrite  "" "" ∀∧_dist_l) #orelse (#rewrite  "" "" ∀∨_dist_r) #orelse (#rewrite "" "" ∀∨_dist_l)));
+
+symbol move_¬∃_out (assumeVar: Tactic) ≔ (#and (#rewrite "" "" ¬∃=∀¬) (move_∀_out assumeVar));
+
+
+
