@@ -10,6 +10,7 @@ the current implementation of the Lambdapi-producing version of Leo-III.
 
 require open Stdlib.HOL;
 require open Stdlib.PropExt;
+require open Stdlib.FunExt;
 
 
 /******************************************************************************
@@ -188,3 +189,75 @@ opaque symbol Decomp_step [a b : Set] (s t : τ a) (f g : τ(a ⤳ b)):
         refine ⊥ₑ (H0 h0)}
         {assume h1; refine h1}
  end;
+
+ // lifting lemmas necessary for applying Decomposition under binders
+
+ opaque symbol lift_decomp_step_binder [i r c e : Set] (lhs rhs : τ i → τ r) (cl cr : τ i → τ c) (fl fr : τ i → τ e):
+  (Π x : τ i, π (¬ (lhs x = rhs x)) → π (¬ (cl x = cr x) ∨ ¬ (fl x = fr x))) →
+    π (¬ ((λ x, lhs x) = (λ x, rhs x))) → π (¬ ((λ x, cl x) = (λ x, cr x)) ∨ ¬ ((λ x, fl x) = (λ x, fr x))) ≔
+begin
+  assume i r c e lhs rhs cl cr fl fr body_decomp h0;
+  refine ∨ₑ (em ((λ x, fl x) = (λ x, fr x))) _ _
+    {assume hfr;
+    refine ∨ₑ (em ((λ x, cl x) = (λ x, cr x))) _ _
+      {assume hcr;
+      have liftedEq : π ((λ x, lhs x) = (λ x, rhs x))
+        {refine funExt (λ x, lhs x) (λ x, rhs x) _;
+        assume x; refine ¬¬ₑ (lhs x = rhs x) _;
+        assume hneq; refine ∨ₑ (body_decomp x hneq) _ _
+          {assume hcl;
+          have hclx : π (cl x = cr x)
+            {refine ind_eq hcr (λ F, F x = cr x) (eq_refl (cr x))};
+          refine hcl hclx}
+          {assume hfl;
+          have hflx : π (fl x = fr x)
+            {refine ind_eq hfr (λ F, F x = fr x) (eq_refl (fr x))};
+          refine hfl hflx}};
+      refine ⊥ₑ [¬ ((λ x, cl x) = (λ x, cr x)) ∨ ¬ ((λ x, fl x) = (λ x, fr x))] (h0 liftedEq)}
+      {assume hcr; refine ∨ᵢ₁ hcr}}
+    {assume her; refine ∨ᵢ₂ her}
+end;
+
+opaque symbol lift_decomp_single_binder [i r c : Set] (lhs rhs : τ i → τ r) (cl cr : τ i → τ c):
+  (Π x : τ i, π (¬ (lhs x = rhs x)) → π (¬ (cl x = cr x))) → π (¬ ((λ x, lhs x) = (λ x, rhs x))) →
+    π (¬ ((λ x, cl x) = (λ x, cr x))) ≔
+begin
+  assume i r c lhs rhs cl cr body_decomp h0;
+  refine ∨ₑ (em ((λ x, cl x) = (λ x, cr x))) _ _
+    {assume hcr;
+    have liftedEq : π ((λ x, lhs x) = (λ x, rhs x))
+      {refine funExt (λ x, lhs x) (λ x, rhs x) _;
+      assume x; refine ¬¬ₑ (lhs x = rhs x) _;
+      assume hneq;
+      have hcl : π (¬ (cl x = cr x))
+        {refine body_decomp x hneq};
+      have hclx : π (cl x = cr x)
+        {refine ind_eq hcr (λ F, F x = cr x) (eq_refl (cr x))};
+      refine hcl hclx};
+    refine ⊥ₑ [¬ ((λ x, cl x) = (λ x, cr x))] (h0 liftedEq)}
+    {assume hcr; refine hcr}
+end;
+
+// Lemma for lifting literals by eta-extending both sides
+
+opaque symbol eta_exp_eq [a b: Set] (f : τ a → τ b): 
+    π (f = (λ x, f x)) ≔
+begin
+    assume a b f;
+    refine funExt f (λ x, f x) _;
+    assume x;
+    reflexivity
+end;
+
+opaque symbol expand_lit [a b : Set] (f g : τ a → τ b): 
+    π (¬ (f = g) = ¬ ((λ x, f x) = (λ x, g x))) ≔
+begin
+    assume a b f g;
+    refine propExt (¬ (f = g)) (¬ ((λ x, f x) = (λ x, g x))) _ _
+        {assume h;
+        rewrite left eta_exp_eq; rewrite left eta_exp_eq;
+        refine h}
+        {assume h;
+        rewrite eta_exp_eq f; rewrite eta_exp_eq g;
+        refine h}
+end;
