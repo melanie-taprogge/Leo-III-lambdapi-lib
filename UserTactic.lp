@@ -97,7 +97,7 @@ require open Stdlib.HOL Stdlib.Impred Stdlib.List Leo-III-lambdapi-lib.CNFeq;
  builtin "change" ≔ #change;
  
  // necessary in order to define the tactics
- protected symbol set0 : Set;
+ symbol set0 : Set;
  rule τ set0 ↪ Set; 
 
 
