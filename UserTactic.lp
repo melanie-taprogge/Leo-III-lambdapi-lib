@@ -95,6 +95,18 @@ require open Stdlib.HOL Stdlib.Impred Stdlib.List Leo-III-lambdapi-lib.CNFeq;
 
  symbol #change : Tactic;
  builtin "change" ≔ #change;
+
+ symbol #assumption : Tactic;
+ builtin "assumption" ≔ #assumption;
+
+ symbol #print : String → Tactic;
+ builtin "print" ≔ #print;
+
+ symbol #focus : String → Tactic;
+ builtin "focus" ≔ #focus;
+
+ symbol #first_hyp : (Π a, π a → Tactic) → Tactic;
+ builtin "first_hyp" ≔ #first_hyp;
  
  // necessary in order to define the tactics
  symbol set0 : Set;
