@@ -14,7 +14,7 @@ for clausification steps, including:
 ---------------------------------------------------------------------------
 */
 
-require open Stdlib.HOL Stdlib.Impred Stdlib.List Stdlib.Tactic Leo-III-lambdapi-lib.CNFeq;
+require open Stdlib.HOL Stdlib.Impred Stdlib.List Stdlib.String Stdlib.Univ Stdlib.Tactic Leo-III-lambdapi-lib.CNFeq;
 
 /******************************************************************************
  *  Setup for the user defined tactic         
@@ -100,9 +100,9 @@ with stepwise_quants ($sk1 ⸬ □) ↪ #and (#repeat ($sk1 #orelse boolIds)) #r
 
 symbol move_∀_out_dijs ≔ #repeat (#rewrite "" "" [prop] ∀∨_dist_r) #orelse (#rewrite "" "" [prop] ∀∨_dist_l);
 
-symbol move_∀_out (assumeVar: Tactic) ≔ ((#and (#and (((#and (#repeat  (#rewrite "" ".[x in x = _]" ¬¬ₑ_eq)) (#refine "∀_ext _"))) #orelse (#refine "∀_ext _")) (#simplify_beta)) assumeVar) #orelse ((#rewrite "" "" [prop] ∀∧_dist_r) #orelse (#rewrite "" "" [prop] ∀∧_dist_l) #orelse (#rewrite "" "" [prop] ∀∨_dist_r) #orelse (#rewrite "" "" [prop] ∀∨_dist_l)));
+symbol move_∀_out [l] [assumeTy:U l] (assumeVar: String) : Tactic ≔ ((#and (#and (((#and (#repeat  (#rewrite "" ".[x in x = _]" ¬¬ₑ_eq)) (#refine "∀_ext _"))) #orelse (#refine "∀_ext _")) (#simplify_beta)) (#assume assumeVar [l] [assumeTy] (λ X:η assumeTy, nothing))) #orelse ((#rewrite "" "" [prop] ∀∧_dist_r) #orelse (#rewrite "" "" [prop] ∀∧_dist_l) #orelse (#rewrite "" "" [prop] ∀∨_dist_r) #orelse (#rewrite "" "" [prop] ∀∨_dist_l)));
 
-symbol move_¬∃_out (assumeVar: Tactic) ≔ (#and (#rewrite "" "" [prop] ¬∃=∀¬) (move_∀_out assumeVar));
+symbol move_¬∃_out [l] [assumeTy:U l] (assumeVar: String) : Tactic ≔ (#and (#rewrite "" "" [prop] ¬∃=∀¬) (move_∀_out [l] [assumeTy] assumeVar));
 
 
 /******************************************************************************
