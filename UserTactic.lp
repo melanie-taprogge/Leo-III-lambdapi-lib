@@ -14,7 +14,7 @@ for clausification steps, including:
 ---------------------------------------------------------------------------
 */
 
-require open Stdlib.HOL Stdlib.Impred Stdlib.List Stdlib.String Stdlib.Univ Stdlib.Tactic Leo-III-lambdapi-lib.CNFeq;
+require open Stdlib.HOL Stdlib.Impred Stdlib.List Stdlib.String Stdlib.Univ Stdlib.Tactic Leo-III-lambdapi-lib.CNFeq Leo-III-lambdapi-lib.TptpArithmatic;
 
 /******************************************************************************
  *  Setup for the user defined tactic         
@@ -55,6 +55,18 @@ symbol applyAny : 𝕃 tactic → Tactic;
  
  symbol applyAllSimplifications ≔ #repeat (applyAny listOfAllSimpRules #orelse #simplify_beta);
 
+ // version of the tactic also applying the arithmatic rules
+
+ symbol listOfAllArithRules ≔ ((#rewrite "" "" [prop] (tptp_difference_simp [tptp_int])) ⸬ (#rewrite "" "" [prop] (tptp_lesseq_simp [tptp_int])) ⸬ 
+      (#rewrite "" "" [prop] (tptp_greater_simp [tptp_int])) ⸬ (#rewrite "" "" [prop] (tptp_greatereq_simp [tptp_int])) ⸬
+
+      (#rewrite "" "" [prop] (tptp_difference_simp [tptp_rat])) ⸬ (#rewrite "" "" [prop] (tptp_lesseq_simp [tptp_rat])) ⸬ 
+      (#rewrite "" "" [prop] (tptp_greater_simp [tptp_rat])) ⸬ (#rewrite "" "" [prop] (tptp_greatereq_simp [tptp_rat])) ⸬
+
+      (#rewrite "" "" [prop] (tptp_difference_simp [tptp_real])) ⸬ (#rewrite "" "" [prop] (tptp_lesseq_simp [tptp_real])) ⸬ 
+      (#rewrite "" "" [prop] (tptp_greater_simp [tptp_real])) ⸬ (#rewrite "" "" [prop] (tptp_greatereq_simp [tptp_real])) ⸬ □);
+
+ symbol applyAllSimplificationsWithArithmatic ≔ #repeat ((applyAny listOfAllSimpRules #orelse applyAny listOfAllArithRules) #orelse #simplify_beta);
 
 /******************************************************************************
 *  Definition of Leo-III clausification tactic        
