@@ -53,7 +53,7 @@ symbol applyAny : 𝕃 tactic → Tactic;
      (#rewrite "" "" [prop] polarity_switch) ⸬ (#refine "⊤ᵢ") ⸬ □);
      // the rules and ... are added as Leo omits trivially false literals, we account for this using this rule
  
- symbol applyAllSimplifications ≔ #repeat (applyAny listOfAllSimpRules);
+ symbol applyAllSimplifications ≔ #repeat (applyAny listOfAllSimpRules #orelse #simplify_beta);
 
 
 /******************************************************************************
