@@ -55,6 +55,8 @@ symbol applyAny : 𝕃 tactic → Tactic;
  
  symbol applyAllSimplifications ≔ #repeat (applyAny listOfAllSimpRules #orelse #simplify_beta);
 
+ symbol applyAllSimplificationsOnce ≔ applyAny listOfAllSimpRules;
+
  // version of the tactic also applying the arithmatic rules
 
  symbol listOfAllArithRules ≔ ((#rewrite "" "" [prop] (tptp_difference_simp [tptp_int])) ⸬ (#rewrite "" "" [prop] (tptp_lesseq_simp [tptp_int])) ⸬ 
@@ -67,6 +69,8 @@ symbol applyAny : 𝕃 tactic → Tactic;
       (#rewrite "" "" [prop] (tptp_greater_simp [tptp_real])) ⸬ (#rewrite "" "" [prop] (tptp_greatereq_simp [tptp_real])) ⸬ □);
 
  symbol applyAllSimplificationsWithArithmatic ≔ #repeat ((applyAny listOfAllSimpRules #orelse applyAny listOfAllArithRules) #orelse #simplify_beta);
+
+ symbol applyAllSimplificationsWithArithmaticOnce ≔ (applyAny listOfAllSimpRules #orelse applyAny listOfAllArithRules);
 
 /******************************************************************************
 *  Definition of Leo-III clausification tactic        
