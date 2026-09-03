@@ -73,6 +73,40 @@ symbol applyAny : 𝕃 tactic → Tactic;
  symbol applyAllSimplificationsWithArithmaticOnce ≔ (applyAny listOfAllSimpRules #orelse applyAny listOfAllArithRules);
 
 /******************************************************************************
+*  Definition of Leo-III literal normalization
+******************************************************************************/
+
+symbol applyAnyAtPos : String → 𝕃 (string ⤳ tactic) → Tactic;
+rule applyAnyAtPos $pat ($t0 ⸬ ($t1 ⸬ $tl)) ↪ ($t0 $pat) #orelse (applyAnyAtPos $pat ($t1 ⸬ $tl))
+with applyAnyAtPos $pat ($t0 ⸬ □) ↪ $t0 $pat;
+
+symbol LitNormRules ≔ 
+    (λ pat: String, (#rewrite "" pat =⊤)) ⸬ (λ pat: String, (#rewrite "" pat ⊤=)) ⸬ 
+    (λ pat: String, (#rewrite "" pat =⊥)) ⸬ (λ pat: String, (#rewrite "" pat ⊥=)) ⸬
+    (λ pat: String, (#rewrite "" pat [prop] polarity_switch)) ⸬ (λ pat: String, (#rewrite "" pat [prop] =_idem)) ⸬ □;
+
+
+symbol normalizeTerms ≔ #and (#and (#repeat (#rewrite "" "" ¬⊥)) (#repeat (#rewrite "" "" ¬⊤))) (#repeat (#rewrite "" "" ¬¬ₑ_eq));
+
+symbol normalizeEqLit ≔ 
+#and
+  normalizeTerms
+  (#and
+    (#and 
+      (#and ((#repeat (applyAnyAtPos ".[x in x = _]" LitNormRules)))
+            (#repeat (applyAnyAtPos ".[x in _ = x]" LitNormRules)))
+      (#and ((#repeat (applyAnyAtPos ".[x in ¬ x = _]" LitNormRules)))
+            (#repeat (applyAnyAtPos ".[x in _ = ¬ x]" LitNormRules))))
+    normalizeTerms)
+;
+
+symbol close= ≔ (#and (#rewrite "" ".[x in x]" (=_idem o)) (#refine "⊤ᵢ"));
+
+symbol closeEq (t: Set) ≔
+(close= #orelse (#and (#rewrite "" ".[x in x = _]" [prop] (=_sym [t])) close=) #orelse (#and (#rewrite "" ".[x in ¬ x = _]" [prop] (=_sym [t])) close=));
+
+
+/******************************************************************************
 *  Definition of Leo-III clausification tactic        
 ******************************************************************************/
 
